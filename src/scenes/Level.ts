@@ -320,12 +320,19 @@ export default class Level extends Phaser.Scene {
 	private difficulty?: DifficultyManager;
 
 	/** Temporary mode: respawn ship after death (other modalities later). */
+	private static readonly BEST_SCORE_STORAGE_KEY = "vertex3-best-score";
+	private readonly gameplayDurationMs = 90_000;
+	private readonly finalCountdownWarningMs = 10_000;
 	private readonly mainShipRespawnDelayMs = 3000;
 	private readonly mainShipSpawnX = 640;
 	private readonly mainShipSpawnY = 360;
 	private mainShipRespawnTimer?: Phaser.Time.TimerEvent;
+	private remainingGameplayMs = this.gameplayDurationMs;
+	private timeExpired = false;
+	private bestScore = 0;
 	private score = 0;
 	private displayedScore = 0;
+	private timeWarningTween?: Phaser.Tweens.Tween;
 	private scoreCountTween?: Phaser.Tweens.Tween;
 	private scorePulseTween?: Phaser.Tweens.Tween;
 	private readonly maxLives = 3;
@@ -368,6 +375,7 @@ export default class Level extends Phaser.Scene {
 		this.setupLivesHud();
 		this.setupPauseText();
 		this.setupGameOverText();
+		this.loadBestScore();
 		this.setupLevelMusic();
 		// Shine + music pulse (horizontal band driven by audio)
 		this.setupMusicGridPulse();
@@ -396,6 +404,7 @@ export default class Level extends Phaser.Scene {
 			this.gameOverRestartDelayTimer = undefined;
 			this.mainShipRespawnTimer?.remove(false);
 			this.mainShipRespawnTimer = undefined;
+			this.stopTimeWarningEffect();
 			this.enemy1Spawner?.destroy();
 			this.enemy1Spawner = undefined;
 			this.difficulty = undefined;
@@ -411,15 +420,48 @@ export default class Level extends Phaser.Scene {
 		this.canRestartFromGameOver = false;
 		this.isRestartingFromGameOver = false;
 		this.wasBlurPaused = false;
+		this.timeExpired = false;
 		this.gameOverRestartDelayTimer?.remove(false);
 		this.gameOverRestartDelayTimer = undefined;
+		this.remainingGameplayMs = this.gameplayDurationMs;
 		this.score = 0;
 		this.displayedScore = 0;
+		this.stopTimeWarningEffect();
 		this.scoreCountTween?.stop();
 		this.scoreCountTween = undefined;
 		this.scorePulseTween?.stop();
 		this.scorePulseTween = undefined;
 		this.remainingLives = this.maxLives;
+		this.refreshBestScoreText();
+		this.refreshTimeText();
+	}
+
+	private loadBestScore() {
+		const storage = window.localStorage;
+		const rawValue = storage.getItem(Level.BEST_SCORE_STORAGE_KEY);
+		const parsedValue = rawValue ? Number.parseInt(rawValue, 10) : 0;
+		this.bestScore = Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 0;
+		this.refreshBestScoreText();
+	}
+
+	private refreshBestScoreText() {
+		if (!this.bestText?.active) {
+			return;
+		}
+
+		const formatted = Math.max(0, Math.floor(this.bestScore)).toString().padStart(9, "0");
+		this.bestText.setText(formatted);
+	}
+
+	private persistBestScore() {
+		const nextBestScore = Math.max(this.bestScore, Math.max(0, Math.floor(this.score)));
+		if (nextBestScore === this.bestScore) {
+			return;
+		}
+
+		this.bestScore = nextBestScore;
+		window.localStorage.setItem(Level.BEST_SCORE_STORAGE_KEY, String(this.bestScore));
+		this.refreshBestScoreText();
 	}
 
 	private setupDifficulty() {
@@ -626,6 +668,9 @@ export default class Level extends Phaser.Scene {
 		}
 
 		this.isGameOver = true;
+		this.stopTimeWarningEffect();
+		this.persistBestScore();
+		this.refreshTimeText();
 		this.canRestartFromGameOver = false;
 		this.gameOverRestartDelayTimer?.remove(false);
 		this.gameOverRestartDelayTimer = undefined;
@@ -663,6 +708,96 @@ export default class Level extends Phaser.Scene {
 	private onEnemy1Died(payload?: { baseScore?: number }) {
 		const baseScore = payload?.baseScore ?? 10;
 		this.addScore(baseScore);
+	}
+
+	private refreshTimeText() {
+		if (!this.timeText?.active) {
+			return;
+		}
+
+		const totalSeconds = Math.ceil(Math.max(0, this.remainingGameplayMs) / 1000);
+		const minutes = Math.floor(totalSeconds / 60);
+		const seconds = totalSeconds % 60;
+		this.timeText.setText(`${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`);
+		this.updateTimeWarningEffect();
+	}
+
+	private updateTimeWarningEffect() {
+		if (!this.timeText?.active) {
+			return;
+		}
+
+		const shouldWarn = !this.isGameOver && !this.timeExpired && this.remainingGameplayMs > 0 && this.remainingGameplayMs <= this.finalCountdownWarningMs;
+		if (!shouldWarn) {
+			this.stopTimeWarningEffect();
+			return;
+		}
+
+		this.timeText.setColor("#ff6b6b");
+		if (this.timeWarningTween) {
+			return;
+		}
+
+		this.timeWarningTween = this.tweens.add({
+			targets: this.timeText,
+			alpha: 0.35,
+			scaleX: 1.08,
+			scaleY: 1.08,
+			duration: 260,
+			ease: "Sine.easeInOut",
+			yoyo: true,
+			repeat: -1,
+		});
+	}
+
+	private stopTimeWarningEffect() {
+		this.timeWarningTween?.stop();
+		this.timeWarningTween = undefined;
+		if (!this.timeText?.active) {
+			return;
+		}
+
+		this.timeText.setAlpha(1);
+		this.timeText.setScale(1);
+		this.timeText.setColor("#6CEE57");
+	}
+
+	private updateGameplayTimer(delta: number) {
+		if (this.isGameOver || this.timeExpired) {
+			return;
+		}
+
+		this.remainingGameplayMs = Math.max(0, this.remainingGameplayMs - delta);
+		this.refreshTimeText();
+
+		if (this.remainingGameplayMs > 0) {
+			return;
+		}
+
+		this.handleGameplayTimeout();
+	}
+
+	private handleGameplayTimeout() {
+		if (this.timeExpired || this.isGameOver) {
+			return;
+		}
+
+		this.timeExpired = true;
+		this.remainingGameplayMs = 0;
+		this.refreshTimeText();
+		this.mainShipRespawnTimer?.remove(false);
+		this.mainShipRespawnTimer = undefined;
+
+		const ship = this.mainShip;
+		if (ship?.active && !ship.hasDied && ship.hasAppeared) {
+			this.remainingLives = 1;
+			this.refreshLivesHud();
+			ship.dieFromEnemyHit();
+			return;
+		}
+
+		Enemy1.destroyAllLiving();
+		this.triggerGameOver();
 	}
 
 	private onMainShipEnergyChanged(payload?: { scoreMultiplier?: number }) {
@@ -801,6 +936,7 @@ export default class Level extends Phaser.Scene {
 
 	private onPostUpdateEffects(time: number, delta: number) {
 		const d = delta ?? this.game.loop.delta;
+		this.updateGameplayTimer(d);
 		this.difficulty?.update(d);
 		this.updateParallax();
 		// Scene POST_UPDATE always passes (time, delta)
