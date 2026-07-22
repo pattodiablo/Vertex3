@@ -332,8 +332,10 @@ export default class Level extends Phaser.Scene {
 	private remainingLives = this.maxLives;
 	private lifeHearts: Phaser.GameObjects.Image[] = [];
 	private gameOverText?: Phaser.GameObjects.Text;
+	private pauseText?: Phaser.GameObjects.Text;
 	private isGameOver = false;
 	private isRestartingFromGameOver = false;
+	private wasBlurPaused = false;
 	private restartEnterKey?: Phaser.Input.Keyboard.Key;
 
 	create() {
@@ -361,6 +363,7 @@ export default class Level extends Phaser.Scene {
 
 		this.setupParallaxLayers();
 		this.setupLivesHud();
+		this.setupPauseText();
 		this.setupGameOverText();
 		this.setupLevelMusic();
 		// Shine + music pulse (horizontal band driven by audio)
@@ -372,12 +375,16 @@ export default class Level extends Phaser.Scene {
 		this.setupMainShipRespawn();
 		this.setupScoreTracking();
 		this.setupGameOverRestartControls();
+		this.setupBlurPauseHandling();
 		this.events.on(Phaser.Scenes.Events.POST_UPDATE, this.onPostUpdateEffects, this);
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
 			this.events.off(Phaser.Scenes.Events.POST_UPDATE, this.onPostUpdateEffects, this);
 			this.events.off(MainShipUser.DIED_EVENT, this.onMainShipDied, this);
 			this.events.off(MainShipUser.ENERGY_CHANGED_EVENT, this.onMainShipEnergyChanged, this);
 			this.events.off(Enemy1.DIED_EVENT, this.onEnemy1Died, this);
+			window.removeEventListener("blur", this.handleWindowBlur);
+			window.removeEventListener("focus", this.handleWindowFocus);
+			document.removeEventListener("visibilitychange", this.handleVisibilityChange);
 			this.input.off(Phaser.Input.Events.POINTER_UP, this.handleGameOverPointerUp, this);
 			this.restartEnterKey?.off(Phaser.Input.Keyboard.Events.DOWN, this.handleGameOverEnterDown, this);
 			this.restartEnterKey?.destroy();
@@ -397,6 +404,7 @@ export default class Level extends Phaser.Scene {
 	private resetRuntimeState() {
 		this.isGameOver = false;
 		this.isRestartingFromGameOver = false;
+		this.wasBlurPaused = false;
 		this.score = 0;
 		this.displayedScore = 0;
 		this.scoreCountTween?.stop();
@@ -444,6 +452,78 @@ export default class Level extends Phaser.Scene {
 		this.gameOverText.setOrigin(0.5, 0.5);
 		this.gameOverText.setDepth(2000);
 		this.gameOverText.setVisible(false);
+	}
+
+	private setupPauseText() {
+		this.pauseText?.destroy();
+		this.pauseText = this.add.text(this.scale.width * 0.5, this.scale.height * 0.5, "PAUSED", {
+			color: "#6CEE57",
+			fontFamily: "Orbitron",
+			fontSize: "36pt",
+			shadow: {
+				offsetX: 4,
+				offsetY: 4,
+				stroke: true,
+			},
+		});
+		this.pauseText.setOrigin(0.5, 0.5);
+		this.pauseText.setDepth(1990);
+		this.pauseText.setVisible(false);
+	}
+
+	private setupBlurPauseHandling() {
+		window.removeEventListener("blur", this.handleWindowBlur);
+		window.removeEventListener("focus", this.handleWindowFocus);
+		document.removeEventListener("visibilitychange", this.handleVisibilityChange);
+
+		window.addEventListener("blur", this.handleWindowBlur);
+		window.addEventListener("focus", this.handleWindowFocus);
+		document.addEventListener("visibilitychange", this.handleVisibilityChange);
+
+		if (document.hidden) {
+			this.pauseFromBlur();
+		}
+	}
+
+	private readonly handleWindowBlur = () => {
+		this.pauseFromBlur();
+	};
+
+	private readonly handleWindowFocus = () => {
+		this.resumeFromBlur();
+	};
+
+	private readonly handleVisibilityChange = () => {
+		if (document.hidden) {
+			this.pauseFromBlur();
+			return;
+		}
+
+		this.resumeFromBlur();
+	};
+
+	private pauseFromBlur() {
+		if (this.isGameOver || this.wasBlurPaused || !this.scene.isActive()) {
+			return;
+		}
+
+		this.wasBlurPaused = true;
+		this.pauseText?.setVisible(true);
+		this.sound.pauseAll();
+		this.scene.pause();
+	}
+
+	private resumeFromBlur() {
+		if (!this.wasBlurPaused) {
+			return;
+		}
+
+		this.wasBlurPaused = false;
+		if (this.scene.isPaused()) {
+			this.scene.resume();
+		}
+		this.pauseText?.setVisible(false);
+		this.sound.resumeAll();
 	}
 
 	private setupGameOverRestartControls() {

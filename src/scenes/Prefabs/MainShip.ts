@@ -156,6 +156,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 	// --- Exhaust ---
 	private static readonly EXHAUST_PARTICLE_KEY = "soft-circle-particle";
 	private static readonly FIRE_SOUND_KEY = "Explosion31";
+	private static readonly DIE_EXPLOSION = "Explosion16";
 	private readonly shipDepth = 10;
 	private readonly exhaustDepth = 5;
 	private exhaustEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -394,6 +395,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 
 		// Big ship explosion
 		if (scene.sys?.isActive()) {
+			this.playDieExplotion();
 			Explode2.spawn(scene, x, y, undefined, 2);
 		}
 
@@ -542,7 +544,18 @@ export default class MainShip extends Phaser.GameObjects.Image {
 		}
 
 		this.scene.sound.play(MainShip.FIRE_SOUND_KEY, {
-			volume: 0.18,
+			volume: 0.28,
+		});
+	}
+
+
+	private playDieExplotion() {
+		if (!this.scene.cache.audio.exists(MainShip.DIE_EXPLOSION)) {
+			return;
+		}
+
+		this.scene.sound.play(MainShip.DIE_EXPLOSION, {
+			volume: 0.30,
 		});
 	}
 
