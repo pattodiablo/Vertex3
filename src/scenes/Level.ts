@@ -329,14 +329,17 @@ export default class Level extends Phaser.Scene {
 	private scoreCountTween?: Phaser.Tweens.Tween;
 	private scorePulseTween?: Phaser.Tweens.Tween;
 	private readonly maxLives = 3;
+	private readonly gameOverRestartDelayMs = 1200;
 	private remainingLives = this.maxLives;
 	private lifeHearts: Phaser.GameObjects.Image[] = [];
 	private gameOverText?: Phaser.GameObjects.Text;
 	private pauseText?: Phaser.GameObjects.Text;
 	private isGameOver = false;
+	private canRestartFromGameOver = false;
 	private isRestartingFromGameOver = false;
 	private wasBlurPaused = false;
 	private restartEnterKey?: Phaser.Input.Keyboard.Key;
+	private gameOverRestartDelayTimer?: Phaser.Time.TimerEvent;
 
 	create() {
 
@@ -389,6 +392,8 @@ export default class Level extends Phaser.Scene {
 			this.restartEnterKey?.off(Phaser.Input.Keyboard.Events.DOWN, this.handleGameOverEnterDown, this);
 			this.restartEnterKey?.destroy();
 			this.restartEnterKey = undefined;
+			this.gameOverRestartDelayTimer?.remove(false);
+			this.gameOverRestartDelayTimer = undefined;
 			this.mainShipRespawnTimer?.remove(false);
 			this.mainShipRespawnTimer = undefined;
 			this.enemy1Spawner?.destroy();
@@ -403,8 +408,11 @@ export default class Level extends Phaser.Scene {
 
 	private resetRuntimeState() {
 		this.isGameOver = false;
+		this.canRestartFromGameOver = false;
 		this.isRestartingFromGameOver = false;
 		this.wasBlurPaused = false;
+		this.gameOverRestartDelayTimer?.remove(false);
+		this.gameOverRestartDelayTimer = undefined;
 		this.score = 0;
 		this.displayedScore = 0;
 		this.scoreCountTween?.stop();
@@ -545,7 +553,7 @@ export default class Level extends Phaser.Scene {
 	}
 
 	private restartIfGameOver() {
-		if (!this.isGameOver || this.isRestartingFromGameOver || !this.sys.isActive()) {
+		if (!this.isGameOver || !this.canRestartFromGameOver || this.isRestartingFromGameOver || !this.sys.isActive()) {
 			return;
 		}
 
@@ -618,6 +626,9 @@ export default class Level extends Phaser.Scene {
 		}
 
 		this.isGameOver = true;
+		this.canRestartFromGameOver = false;
+		this.gameOverRestartDelayTimer?.remove(false);
+		this.gameOverRestartDelayTimer = undefined;
 		this.mainShipRespawnTimer?.remove(false);
 		this.mainShipRespawnTimer = undefined;
 		this.enemy1Spawner?.destroy();
@@ -637,6 +648,15 @@ export default class Level extends Phaser.Scene {
 			scaleY: 1,
 			duration: 320,
 			ease: "Back.easeOut",
+		});
+
+		this.gameOverRestartDelayTimer = this.time.delayedCall(this.gameOverRestartDelayMs, () => {
+			this.gameOverRestartDelayTimer = undefined;
+			if (!this.sys.isActive() || !this.isGameOver) {
+				return;
+			}
+
+			this.canRestartFromGameOver = true;
 		});
 	}
 

@@ -656,10 +656,11 @@ export default class MainShip extends Phaser.GameObjects.Image {
 	}
 
 	private teardownTouchJoystick() {
-		this.scene.input.off("pointerdown", this.handlePointerDown, this);
-		this.scene.input.off("pointermove", this.handlePointerMove, this);
-		this.scene.input.off("pointerup", this.handlePointerUp, this);
-		this.scene.input.off("pointerupoutside", this.handlePointerUp, this);
+		const input = this.scene?.input;
+		input?.off("pointerdown", this.handlePointerDown, this);
+		input?.off("pointermove", this.handlePointerMove, this);
+		input?.off("pointerup", this.handlePointerUp, this);
+		input?.off("pointerupoutside", this.handlePointerUp, this);
 		this.touchJoystickGraphics?.destroy();
 		this.touchJoystickGraphics = undefined;
 		this.touchJoystick = undefined;
