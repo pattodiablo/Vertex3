@@ -141,6 +141,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 	private touchControlsReady = false;
 	private readonly joystickRadius = 64;
 	private readonly joystickDeadZone = 8;
+	private readonly gamepadDeadZone = 0.2;
 	private readonly joystickBaseAlpha = 0.14;
 	private readonly joystickKnobAlpha = 0.3;
 
@@ -422,6 +423,11 @@ export default class MainShip extends Phaser.GameObjects.Image {
 
 	private handleMovement(delta: number) {
 		this.ensureControls();
+		const gamepadStick = this.getGamepadMoveStick();
+		if (gamepadStick) {
+			this.handleAnalogMovement(delta, gamepadStick.angle, gamepadStick.magnitude);
+			return;
+		}
 
 		if (this.scene.sys.game.device.input.touch) {
 			this.handleTouchMovement(delta);
@@ -472,7 +478,6 @@ export default class MainShip extends Phaser.GameObjects.Image {
 	}
 
 	private handleTouchMovement(delta: number) {
-		const b2 = MainShip.box2d;
 		const joystick = this.touchJoystick;
 		if (!joystick || !joystick.active) {
 			this.applyDrag(delta);
@@ -493,7 +498,13 @@ export default class MainShip extends Phaser.GameObjects.Image {
 		this.touchJoystickAngle = angle;
 
 		const speedFactor = clampedDistance / this.joystickRadius;
-		const targetSpeed = this.moveSpeed * speedFactor;
+		this.handleAnalogMovement(delta, angle, speedFactor);
+	}
+
+	private handleAnalogMovement(_delta: number, angle: number, speedFactor: number) {
+		const b2 = MainShip.box2d;
+		const clampedSpeedFactor = Phaser.Math.Clamp(speedFactor, 0, 1);
+		const targetSpeed = this.moveSpeed * clampedSpeedFactor;
 		const targetVelocity = new b2Vec2(Math.cos(angle) * targetSpeed, -Math.sin(angle) * targetSpeed);
 
 		b2.b2Body_SetLinearVelocity(this.bodyId, targetVelocity);
@@ -568,11 +579,78 @@ export default class MainShip extends Phaser.GameObjects.Image {
 			return Math.atan2(nearest.y - this.y, nearest.x - this.x);
 		}
 
+		const gamepadAimAngle = this.getGamepadAimAngle();
+		if (gamepadAimAngle !== null) {
+			return gamepadAimAngle;
+		}
+
 		if (this.scene.sys.game.device.input.touch && this.touchJoystick) {
 			return this.touchJoystickAngle;
 		}
 
 		return this.rotation;
+	}
+
+	private getActiveGamepad() {
+		const gamepadManager = this.scene.input.gamepad;
+		if (!gamepadManager) {
+			return null;
+		}
+
+		for (const pad of gamepadManager.gamepads) {
+			if (pad && pad.connected) {
+				return pad;
+			}
+		}
+
+		return null;
+	}
+
+	private getGamepadMoveStick() {
+		const pad = this.getActiveGamepad();
+		if (!pad) {
+			return null;
+		}
+
+		const axisX = this.readGamepadAxis(pad.leftStick.x, !!pad.left, !!pad.right);
+		const axisY = this.readGamepadAxis(pad.leftStick.y, !!pad.up, !!pad.down);
+		return this.normalizeAnalogInput(axisX, axisY);
+	}
+
+	private getGamepadAimAngle() {
+		const pad = this.getActiveGamepad();
+		if (!pad) {
+			return null;
+		}
+
+		const rightStick = this.normalizeAnalogInput(pad.rightStick.x, pad.rightStick.y);
+		if (rightStick) {
+			return rightStick.angle;
+		}
+
+		const leftStick = this.getGamepadMoveStick();
+		return leftStick?.angle ?? null;
+	}
+
+	private readGamepadAxis(axisValue: number | undefined, negativePressed = false, positivePressed = false) {
+		const analogValue = axisValue ?? 0;
+		if (Math.abs(analogValue) > this.gamepadDeadZone) {
+			return analogValue;
+		}
+
+		return (positivePressed ? 1 : 0) - (negativePressed ? 1 : 0);
+	}
+
+	private normalizeAnalogInput(rawX: number, rawY: number) {
+		const magnitude = Math.min(1, Math.hypot(rawX, rawY));
+		if (magnitude <= this.gamepadDeadZone) {
+			return null;
+		}
+
+		return {
+			angle: Math.atan2(rawY, rawX),
+			magnitude,
+		};
 	}
 
 	// ---------- Touch joystick ----------

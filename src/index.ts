@@ -70,6 +70,9 @@ window.addEventListener('load', function () {
 		width: 1280,
 		height: 720,
 		backgroundColor: "#2f2f2f",
+		input: {
+			gamepad: true,
+		},
 		scale: {
 			mode: Phaser.Scale.ScaleModes.FIT,
 			autoCenter: Phaser.Scale.Center.CENTER_BOTH
