@@ -1,0 +1,30 @@
+{
+  "name": "phaser3-webpack-template",
+  "version": "1.0.0",
+  "description": "Phaser 3 project template for Phaser Editor 2D v3",
+  "main": "webpack.config.js",
+  "scripts": {
+    "start": "webpack serve --mode=development --stats-error-details --node-env development",
+    "build": "webpack --mode=production --node-env production && phaser-asset-pack-hashing -r dist",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Phaser Editor 2D <developers@phasereditor2d.com> (https://phasereditor2d.com/)",
+  "license": "MIT",
+  "dependencies": {
+    "@phaserjs/editor-scripts-base": "^2.0.1",
+    "phaser": "^4.0.0-rc.6",
+    "phaser-box2d": "^1.1.0"
+  },
+  "devDependencies": {
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^13.0.1",
+    "html-webpack-plugin": "^5.6.6",
+    "phaser-asset-pack-hashing": "^1.0.5",
+    "ts-loader": "^9.4.2",
+    "typescript": "^5.0.4",
+    "webpack": "^5.104.1",
+    "webpack-clean-plugin": "^0.2.3",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.3"
+  }
+}

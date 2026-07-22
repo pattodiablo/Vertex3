@@ -1,0 +1,191 @@
+{
+    "section1": {
+        "files": [
+            {
+                "url": "assets/AnimadoTest.svg",
+                "svgConfig": {
+                    "width": 0,
+                    "height": 0,
+                    "scale": 0
+                },
+                "type": "svg",
+                "key": "AnimadoTest"
+            },
+            {
+                "url": "assets/animations.json",
+                "type": "animation",
+                "key": "animations"
+            },
+            {
+                "url": "assets/appearEffect.png",
+                "frameConfig": {
+                    "frameWidth": 96,
+                    "frameHeight": 96,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "appearEffect"
+            },
+            {
+                "url": "assets/AppearEffect2.png",
+                "frameConfig": {
+                    "frameWidth": 128,
+                    "frameHeight": 128,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "AppearEffect2"
+            },
+            {
+                "url": "assets/AShip.svg",
+                "svgConfig": {
+                    "width": 80,
+                    "height": 87
+                },
+                "type": "svg",
+                "key": "AShip"
+            },
+            {
+                "url": "assets/Aship2.png",
+                "type": "image",
+                "key": "Aship2"
+            },
+            {
+                "url": "assets/AsteroidsBg.png",
+                "type": "image",
+                "key": "AsteroidsBg"
+            },
+            {
+                "url": "assets/AsteroidsFore.png",
+                "type": "image",
+                "key": "AsteroidsFore"
+            },
+            {
+                "url": "assets/bgGalaxy.png",
+                "type": "image",
+                "key": "bgGalaxy"
+            },
+            {
+                "url": "assets/Bullet.png",
+                "type": "image",
+                "key": "Bullet"
+            },
+            {
+                "url": "assets/enemy1.png",
+                "type": "image",
+                "key": "enemy1"
+            },
+            {
+                "url": "assets/energyParticle.png",
+                "type": "image",
+                "key": "energyParticle"
+            },
+            {
+                "url": "assets/Explode1.png",
+                "frameConfig": {
+                    "frameWidth": 128,
+                    "frameHeight": 128,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Explode1"
+            },
+            {
+                "url": "assets/Explode2.png",
+                "frameConfig": {
+                    "frameWidth": 128,
+                    "frameHeight": 128,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Explode2"
+            },
+            {
+                "url": "assets/FufuSuperDino.png",
+                "type": "image",
+                "key": "FufuSuperDino"
+            },
+            {
+                "url": "assets/gameBg.png",
+                "type": "image",
+                "key": "gameBg"
+            },
+            {
+                "url": "assets/grid.png",
+                "type": "image",
+                "key": "grid"
+            },
+            {
+                "url": "assets/growEffect.png",
+                "frameConfig": {
+                    "frameWidth": 256,
+                    "frameHeight": 256,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "growEffect"
+            },
+            {
+                "url": [
+                    "assets/audio/intro.mp3"
+                ],
+                "type": "audio",
+                "key": "intro"
+            },
+            {
+                "url": "assets/LifeHeart.png",
+                "type": "image",
+                "key": "LifeHeart"
+            },
+            {
+                "url": "assets/mainShip.png",
+                "type": "image",
+                "key": "mainShip"
+            },
+            {
+                "url": [
+                    "assets/audio/mid.mp3"
+                ],
+                "type": "audio",
+                "key": "mid"
+            },
+            {
+                "url": "assets/fonts/Orbitron.ttf",
+                "format": "truetype",
+                "descriptors": {},
+                "type": "font",
+                "key": "Orbitron"
+            },
+            {
+                "url": [
+                    "assets/audio/outro.mp3"
+                ],
+                "type": "audio",
+                "key": "outro"
+            }
+        ]
+    },
+    "meta": {
+        "app": "Phaser Editor 2D - Asset Pack Editor",
+        "contentType": "phasereditor2d.pack.core.AssetContentType",
+        "url": "https://phasereditor2d.com",
+        "version": 2,
+        "showAllFilesInBlocks": false,
+        "visible": true
+    }
+}

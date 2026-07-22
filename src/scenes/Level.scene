@@ -1,0 +1,371 @@
+{
+    "id": "b685c081-ee5f-4b67-b583-415922c9e2c4",
+    "sceneType": "SCENE",
+    "settings": {
+        "exportClass": true,
+        "autoImport": true,
+        "preloadPackFiles": [],
+        "createMethodName": "editorCreate",
+        "sceneKey": "Level",
+        "compilerOutputLanguage": "TYPE_SCRIPT",
+        "borderWidth": 1280,
+        "borderHeight": 720,
+        "box2dGenerateWorldCode": true,
+        "box2dSceneGenerateDebugCode": true
+    },
+    "displayList": [
+        {
+            "type": "Image",
+            "id": "9b5da449-3478-4ca4-8e59-fc120d953a90",
+            "label": "gameBg",
+            "scope": "CLASS",
+            "texture": {
+                "key": "bgGalaxy"
+            },
+            "scaleX": 1.1,
+            "scaleY": 1.1,
+            "originX": 0,
+            "originY": 0
+        },
+        {
+            "type": "Rectangle",
+            "id": "474f4763-4d84-4e90-8c34-cc6bab2749df",
+            "label": "pared1",
+            "scope": "CLASS",
+            "x": 681,
+            "y": 776,
+            "scaleX": 15.333759102205278,
+            "alpha": 0,
+            "isFilled": true,
+            "width": 128,
+            "height": 128,
+            "list": [
+                {
+                    "type": "b2Body",
+                    "id": "f1f9203f-c5c4-4d23-b525-732e3fdcc295",
+                    "label": "body_2",
+                    "scope": "CLASS",
+                    "positionX": 681,
+                    "positionY": -776,
+                    "list": [
+                        {
+                            "type": "b2BoxShape",
+                            "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+                            "label": "pisoShape",
+                            "friction": 0.8,
+                            "halfWidth": 981.3605825411378,
+                            "halfHeight": 64
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Rectangle",
+            "id": "17980d59-f15d-4505-842d-220e7db0c4a2",
+            "label": "pared2",
+            "scope": "CLASS",
+            "x": -56,
+            "y": 395,
+            "scaleX": 15.333759102205278,
+            "angle": 90,
+            "alpha": 0,
+            "isFilled": true,
+            "width": 128,
+            "height": 128,
+            "list": [
+                {
+                    "type": "b2Body",
+                    "id": "0f8eecea-ecb2-4c85-b294-64616ce52a42",
+                    "label": "body_3",
+                    "scope": "CLASS",
+                    "positionX": -56,
+                    "positionY": -395,
+                    "rotation": 90,
+                    "list": [
+                        {
+                            "type": "b2BoxShape",
+                            "id": "63838438-8294-4707-94fa-ae36c0bf26e1",
+                            "label": "pisoShape_1",
+                            "friction": 0.8,
+                            "halfWidth": 981.3605825411378,
+                            "halfHeight": 64
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Rectangle",
+            "id": "cc34f944-d7da-49af-9b76-956e8e03cc3a",
+            "label": "pared3",
+            "scope": "CLASS",
+            "x": 681,
+            "y": -60,
+            "scaleX": 15.333759102205278,
+            "alpha": 0,
+            "isFilled": true,
+            "width": 128,
+            "height": 128,
+            "list": [
+                {
+                    "type": "b2Body",
+                    "id": "fee0b8fd-ee9b-495e-bc51-e4affeacd907",
+                    "label": "body_4",
+                    "scope": "CLASS",
+                    "positionX": 681,
+                    "positionY": 60,
+                    "list": [
+                        {
+                            "type": "b2BoxShape",
+                            "id": "06ce6620-91f1-4b6a-8052-336ef549ba4e",
+                            "label": "pisoShape_2",
+                            "friction": 0.8,
+                            "halfWidth": 981.3605825411378,
+                            "halfHeight": 64
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Rectangle",
+            "id": "9de8f64a-03cb-49e4-88dc-8c79ed5fee4f",
+            "label": "pared4",
+            "scope": "CLASS",
+            "x": 1335,
+            "y": 395,
+            "scaleX": 15.333759102205278,
+            "angle": 90,
+            "alpha": 0,
+            "isFilled": true,
+            "width": 128,
+            "height": 128,
+            "list": [
+                {
+                    "type": "b2Body",
+                    "id": "f452a3c0-eaaa-4cda-8449-b107726840f7",
+                    "label": "body_5",
+                    "scope": "CLASS",
+                    "positionX": 1335,
+                    "positionY": -395,
+                    "rotation": 90,
+                    "list": [
+                        {
+                            "type": "b2BoxShape",
+                            "id": "f1b04055-7027-45d9-9b79-008bb68fabf1",
+                            "label": "pisoShape_3",
+                            "friction": 0.8,
+                            "halfWidth": 981.3605825411378,
+                            "halfHeight": 64
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "type": "Image",
+            "id": "0e0c3464-703a-4e4c-930a-154cce88d032",
+            "label": "grid",
+            "scope": "CLASS",
+            "texture": {
+                "key": "grid"
+            },
+            "x": 640,
+            "y": 360
+        },
+        {
+            "type": "Image",
+            "id": "730a1182-6973-47f9-b502-8483d2cc787d",
+            "label": "asteroidsBg",
+            "scope": "CLASS",
+            "texture": {
+                "key": "AsteroidsBg"
+            },
+            "x": 640,
+            "y": 360,
+            "scaleX": 1.1,
+            "scaleY": 1.1
+        },
+        {
+            "type": "Image",
+            "id": "e098e925-ef53-4b33-b9e8-b511569ee10f",
+            "label": "asteroidsFore",
+            "scope": "CLASS",
+            "texture": {
+                "key": "AsteroidsFore"
+            },
+            "x": 640,
+            "y": 360,
+            "scaleX": 1.1,
+            "scaleY": 1.1
+        },
+        {
+            "prefabId": "568bdd2c-e9e7-4245-9995-331561e886b7",
+            "id": "8a6ade8c-0876-4341-bf37-e5af515d4a65",
+            "unlock": [
+                "x",
+                "y"
+            ],
+            "label": "mainShip",
+            "scope": "PUBLIC",
+            "x": 640,
+            "y": 360
+        },
+        {
+            "type": "Text",
+            "id": "4005a879-33e6-48be-9c16-b77962d5292c",
+            "label": "ScoreText",
+            "scope": "PUBLIC",
+            "x": 131,
+            "y": 83,
+            "originX": 0.5,
+            "originY": 0.5,
+            "text": "000000000",
+            "fontFamily": "Orbitron",
+            "fontSize": "22pt",
+            "color": "#6CEE57",
+            "shadow.offsetX": 3,
+            "shadow.offsetY": 3,
+            "shadow.stroke": true
+        },
+        {
+            "type": "Text",
+            "id": "d2c1a592-27d7-49c5-99f2-965b218d3428",
+            "label": "ScoreText_1",
+            "scope": "PUBLIC",
+            "x": 130,
+            "y": 42,
+            "originX": 0.5,
+            "originY": 0.5,
+            "text": "score",
+            "align": "center",
+            "fontFamily": "Orbitron",
+            "fontSize": "21pt",
+            "color": "#6CEE57",
+            "shadow.offsetX": 3,
+            "shadow.offsetY": 3,
+            "shadow.stroke": true
+        },
+        {
+            "type": "Text",
+            "id": "32aaf186-c645-4a31-af69-ffcb4766b663",
+            "label": "multiplierText",
+            "scope": "PUBLIC",
+            "x": 388,
+            "y": 65,
+            "text": "0",
+            "fontFamily": "Orbitron",
+            "fontSize": "22pt",
+            "color": "#6CEE57",
+            "shadow.offsetX": 3,
+            "shadow.offsetY": 3,
+            "shadow.stroke": true
+        },
+        {
+            "type": "Text",
+            "id": "252e084f-b741-4ad2-a404-9170d0118db1",
+            "label": "multiplierX",
+            "scope": "PUBLIC",
+            "x": 361,
+            "y": 65,
+            "text": "x",
+            "fontFamily": "Orbitron",
+            "fontSize": "22pt",
+            "color": "#6CEE57",
+            "shadow.offsetX": 3,
+            "shadow.offsetY": 3,
+            "shadow.stroke": true
+        },
+        {
+            "type": "Text",
+            "id": "f4d6c9b0-d5c4-49c6-9b0e-14f6a7cb1cd3",
+            "label": "TimeText",
+            "scope": "PUBLIC",
+            "x": 622,
+            "y": 43,
+            "originX": 0.5,
+            "text": "00:00",
+            "fontFamily": "Orbitron",
+            "fontSize": "51pt",
+            "color": "#6CEE57",
+            "shadow.offsetX": 3,
+            "shadow.offsetY": 3,
+            "shadow.stroke": true
+        },
+        {
+            "type": "Image",
+            "id": "b0e8b4b3-58e3-4f9b-a98f-b1f57c048331",
+            "label": "lifeHeart1",
+            "scope": "PUBLIC",
+            "texture": {
+                "key": "LifeHeart"
+            },
+            "x": 849,
+            "y": 87
+        },
+        {
+            "type": "Image",
+            "id": "a2a9ee46-7d46-43c4-8faa-25058d727f15",
+            "label": "lifeHeart2",
+            "scope": "PUBLIC",
+            "texture": {
+                "key": "LifeHeart"
+            },
+            "x": 887,
+            "y": 87
+        },
+        {
+            "type": "Image",
+            "id": "84dc2e5c-4816-42bb-b933-09d57e5e3888",
+            "label": "lifeHeart3",
+            "scope": "PUBLIC",
+            "texture": {
+                "key": "LifeHeart"
+            },
+            "x": 925,
+            "y": 87
+        },
+        {
+            "type": "Text",
+            "id": "5946b376-85f9-4565-a774-84f74d44a872",
+            "label": "BestTitle",
+            "scope": "PUBLIC",
+            "x": 1126,
+            "y": 42,
+            "originX": 0.5,
+            "originY": 0.5,
+            "text": "best",
+            "align": "center",
+            "fontFamily": "Orbitron",
+            "fontSize": "21pt",
+            "color": "#6CEE57",
+            "shadow.offsetX": 3,
+            "shadow.offsetY": 3,
+            "shadow.stroke": true
+        },
+        {
+            "type": "Text",
+            "id": "3771f32a-bcf8-4881-baca-491571ab72d1",
+            "label": "BestText",
+            "scope": "PUBLIC",
+            "x": 1129,
+            "y": 65,
+            "originX": 0.5,
+            "text": "000000000",
+            "fontFamily": "Orbitron",
+            "fontSize": "22pt",
+            "color": "#6CEE57",
+            "shadow.offsetX": 3,
+            "shadow.offsetY": 3,
+            "shadow.stroke": true
+        }
+    ],
+    "plainObjects": [],
+    "meta": {
+        "app": "Phaser Editor - Scene Editor",
+        "url": "https://phaser.io/editor",
+        "contentType": "phasereditor2d.core.scene.SceneContentType",
+        "version": 5
+    }
+}
