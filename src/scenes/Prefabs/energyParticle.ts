@@ -53,7 +53,7 @@ export default class energyParticle extends Phaser.GameObjects.Sprite {
 	private bodyDetached = false;
 	private lifetimeTimer?: Phaser.Time.TimerEvent;
 
-	static spawnBurst(scene: Phaser.Scene, x: number, y: number, count = Phaser.Math.Between(1, 2)) {
+	static spawnBurst(scene: Phaser.Scene, x: number, y: number, count = 1) {
 		for (let index = 0; index < count; index++) {
 			const particle = new energyParticle(scene, x, y);
 			scene.add.existing(particle);

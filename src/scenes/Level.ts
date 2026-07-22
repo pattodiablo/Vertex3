@@ -328,6 +328,11 @@ export default class Level extends Phaser.Scene {
 	private displayedScore = 0;
 	private scoreCountTween?: Phaser.Tweens.Tween;
 	private scorePulseTween?: Phaser.Tweens.Tween;
+	private readonly maxLives = 3;
+	private remainingLives = this.maxLives;
+	private lifeHearts: Phaser.GameObjects.Image[] = [];
+	private gameOverText?: Phaser.GameObjects.Text;
+	private isGameOver = false;
 
 	create() {
 
@@ -352,6 +357,8 @@ export default class Level extends Phaser.Scene {
 		}
 
 		this.setupParallaxLayers();
+		this.setupLivesHud();
+		this.setupGameOverText();
 		this.setupLevelMusic();
 		// Shine + music pulse (horizontal band driven by audio)
 		this.setupMusicGridPulse();
@@ -396,6 +403,45 @@ export default class Level extends Phaser.Scene {
 		this.events.on(Enemy1.DIED_EVENT, this.onEnemy1Died, this);
 	}
 
+	private setupLivesHud() {
+		this.remainingLives = this.maxLives;
+		this.lifeHearts = [this.lifeHeart1, this.lifeHeart2, this.lifeHeart3].filter(Boolean);
+		this.refreshLivesHud();
+	}
+
+	private setupGameOverText() {
+		this.gameOverText?.destroy();
+		this.gameOverText = this.add.text(this.scale.width * 0.5, this.scale.height * 0.5, "GAME OVER", {
+			color: "#6CEE57",
+			fontFamily: "Orbitron",
+			fontSize: "54pt",
+			shadow: {
+				offsetX: 4,
+				offsetY: 4,
+				stroke: true,
+			},
+		});
+		this.gameOverText.setOrigin(0.5, 0.5);
+		this.gameOverText.setDepth(2000);
+		this.gameOverText.setVisible(false);
+	}
+
+	private refreshLivesHud() {
+		for (let index = 0; index < this.lifeHearts.length; index++) {
+			const heart = this.lifeHearts[index];
+			if (!heart) {
+				continue;
+			}
+
+			heart.setAlpha(index < this.remainingLives ? 1 : 0.22);
+			if (index >= this.remainingLives) {
+				heart.setTint(0x6cee57);
+			} else {
+				heart.clearTint();
+			}
+		}
+	}
+
 	private onMainShipDied(_payload?: { x: number; y: number }) {
 		// Ease difficulty a bit; total progress still grows
 		this.difficulty?.onShipDied();
@@ -403,6 +449,13 @@ export default class Level extends Phaser.Scene {
 
 		// Clear stale reference (instance is destroyed)
 		(this as { mainShip?: MainShip }).mainShip = undefined;
+		this.remainingLives = Math.max(0, this.remainingLives - 1);
+		this.refreshLivesHud();
+
+		if (this.remainingLives <= 0) {
+			this.triggerGameOver();
+			return;
+		}
 
 		this.mainShipRespawnTimer?.remove(false);
 		this.mainShipRespawnTimer = this.time.delayedCall(this.mainShipRespawnDelayMs, () => {
@@ -425,6 +478,34 @@ export default class Level extends Phaser.Scene {
 		this.add.existing(ship);
 		this.mainShip = ship as MainShip;
 		this.refreshMultiplierText(this.mainShip.scoreMultiplier);
+	}
+
+	private triggerGameOver() {
+		if (this.isGameOver) {
+			return;
+		}
+
+		this.isGameOver = true;
+		this.mainShipRespawnTimer?.remove(false);
+		this.mainShipRespawnTimer = undefined;
+		this.enemy1Spawner?.destroy();
+		this.enemy1Spawner = undefined;
+		this.playLevelOutro();
+		if (!this.gameOverText) {
+			return;
+		}
+
+		this.gameOverText.setAlpha(0);
+		this.gameOverText.setScale(0.8);
+		this.gameOverText.setVisible(true);
+		this.tweens.add({
+			targets: this.gameOverText,
+			alpha: 1,
+			scaleX: 1,
+			scaleY: 1,
+			duration: 320,
+			ease: "Back.easeOut",
+		});
 	}
 
 	private onEnemy1Died(payload?: { baseScore?: number }) {

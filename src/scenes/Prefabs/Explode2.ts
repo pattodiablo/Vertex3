@@ -28,9 +28,9 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 	private static readonly PARTICLE_KEY = "explode2-orb";
 
 	/** Orbs that fly out then float (Megaman death style). Kept light for mobile. */
-	private static readonly ORB_COUNT = 8;
+	private static readonly ORB_COUNT = 5;
 	/** How long orbs stay on screen floating (ms). */
-	private static readonly ORB_MAX_LIFE = 1800;
+	private static readonly ORB_MAX_LIFE = 1100;
 
 	/**
 	 * Spawn a one-shot explosion at (x, y).
@@ -86,12 +86,12 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 			// All directions from the center
 			angle: { min: 0, max: 360 },
 			// Moderate push outward (not too fast)
-			speed: { min: 45, max: 95 },
+			speed: { min: 35, max: 75 },
 			// de más a menos: bigger near center, shrink while floating
-			scale: { start: 1.7, end: 0.35 },
+			scale: { start: 1.35, end: 0.25 },
 			// Stay bright, fade only late in life
-			alpha: { start: 1, end: 0 },
-			lifespan: { min: 1500, max: Explode2.ORB_MAX_LIFE },
+			alpha: { start: 0.9, end: 0 },
+			lifespan: { min: 850, max: Explode2.ORB_MAX_LIFE },
 			tint: [0x66ffcc, 0x33ffaa, 0x44ddff, 0xaaffff, 0xffffff],
 			blendMode: Phaser.BlendModes.ADD,
 			// No gravity → float / drift

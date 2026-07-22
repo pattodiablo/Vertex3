@@ -674,13 +674,13 @@ export default class MainShip extends Phaser.GameObjects.Image {
 		this.setDepth(this.shipDepth);
 
 		this.exhaustEmitter = this.scene.add.particles(0, 0, MainShip.EXHAUST_PARTICLE_KEY, {
-			speed: { min: 15, max: 70 },
+			speed: { min: 12, max: 52 },
 			angle: { min: 0, max: 360 },
-			scale: { start: 2, end: 0 },
-			alpha: { start: 0.75, end: 0 },
-			lifespan: { min: 180, max: 360 },
-			frequency: 36,
-			quantity: 2,
+			scale: { start: 1.4, end: 0 },
+			alpha: { start: 0.55, end: 0 },
+			lifespan: { min: 140, max: 240 },
+			frequency: 52,
+			quantity: 1,
 			tint: [0x2bff6a, 0x00e676, 0x39ff14, 0x33ccff, 0x00a2ff, 0x4d7cff, 0x9bffce],
 			blendMode: Phaser.BlendModes.ADD,
 			gravityY: 0,

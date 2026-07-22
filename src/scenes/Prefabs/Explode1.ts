@@ -29,10 +29,10 @@ export default class Explode1 extends Phaser.GameObjects.Sprite {
 	private static readonly PARTICLE_TEXTURE_KEY = "explode1-particle";
 
 	/** How many particles per explosion burst (kept low for mobile). */
-	private static readonly PARTICLE_COUNT = 14;
+	private static readonly PARTICLE_COUNT = 9;
 	/** Max particle lifetime (ms) — also used to destroy the emitter after. */
-	private static readonly PARTICLE_MAX_LIFE = 480;
-	private static readonly WALL_PARTICLE_COUNT = 5;
+	private static readonly PARTICLE_MAX_LIFE = 320;
+	private static readonly WALL_PARTICLE_COUNT = 3;
 
 	/**
 	 * Spawn a one-shot explosion VFX at (x, y), then destroy it.
@@ -59,10 +59,10 @@ export default class Explode1 extends Phaser.GameObjects.Sprite {
 
 		const emitter = scene.add.particles(x, y, Explode1.PARTICLE_TEXTURE_KEY, {
 			angle: { min: 0, max: 360 },
-			speed: { min: 45, max: 120 },
-			scale: { start: 0.65, end: 0 },
-			alpha: { start: 0.8, end: 0 },
-			lifespan: { min: 160, max: 260 },
+			speed: { min: 35, max: 95 },
+			scale: { start: 0.5, end: 0 },
+			alpha: { start: 0.7, end: 0 },
+			lifespan: { min: 120, max: 200 },
 			tint: [0x2bff6a, 0x00e676, 0x33ccff],
 			blendMode: Phaser.BlendModes.ADD,
 			gravityY: 0,
@@ -71,7 +71,7 @@ export default class Explode1 extends Phaser.GameObjects.Sprite {
 		});
 
 		emitter.explode(Explode1.WALL_PARTICLE_COUNT);
-		scene.time.delayedCall(320, () => {
+		scene.time.delayedCall(240, () => {
 			if (emitter && emitter.scene) {
 				emitter.destroy();
 			}
@@ -110,11 +110,11 @@ export default class Explode1 extends Phaser.GameObjects.Sprite {
 		const emitter = scene.add.particles(this.x, this.y, Explode1.PARTICLE_TEXTURE_KEY, {
 			// All directions
 			angle: { min: 0, max: 360 },
-			speed: { min: 90, max: 260 },
+			speed: { min: 70, max: 180 },
 			// Shrink + fade out
-			scale: { start: 1.1, end: 0 },
-			alpha: { start: 0.95, end: 0 },
-			lifespan: { min: 280, max: Explode1.PARTICLE_MAX_LIFE },
+			scale: { start: 0.9, end: 0 },
+			alpha: { start: 0.85, end: 0 },
+			lifespan: { min: 180, max: Explode1.PARTICLE_MAX_LIFE },
 			// Random greens and blues
 			tint: [0x2bff6a, 0x00e676, 0x39ff14, 0x33ccff, 0x00a2ff, 0x4d7cff],
 			blendMode: Phaser.BlendModes.ADD,
