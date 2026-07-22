@@ -73,6 +73,12 @@ export default class MainShip extends Phaser.GameObjects.Image {
 			if (MainShip.currentShip === this) {
 				MainShip.currentShip = undefined;
 			}
+			this.controls = undefined;
+			MainShip.controlsByScene.delete(this.scene);
+		});
+		this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+			this.controls = undefined;
+			MainShip.controlsByScene.delete(this.scene);
 		});
 		/* END-USER-CTR-CODE */
 	}
@@ -149,6 +155,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 
 	// --- Exhaust ---
 	private static readonly EXHAUST_PARTICLE_KEY = "soft-circle-particle";
+	private static readonly FIRE_SOUND_KEY = "Explosion31";
 	private readonly shipDepth = 10;
 	private readonly exhaustDepth = 5;
 	private exhaustEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -521,11 +528,22 @@ export default class MainShip extends Phaser.GameObjects.Image {
 		const baseAngle = this.getFireAngle();
 		const spread = Phaser.Math.DegToRad(this.bulletSpreadDeg);
 		const angles = [baseAngle, baseAngle + spread, baseAngle - spread];
+		this.playFireBurstSound();
 
 		for (const angle of angles) {
 			const bullet = new Bullet(this.scene, this.x, this.y, angle);
 			this.scene.add.existing(bullet);
 		}
+	}
+
+	private playFireBurstSound() {
+		if (!this.scene.cache.audio.exists(MainShip.FIRE_SOUND_KEY)) {
+			return;
+		}
+
+		this.scene.sound.play(MainShip.FIRE_SOUND_KEY, {
+			volume: 0.18,
+		});
 	}
 
 	/**

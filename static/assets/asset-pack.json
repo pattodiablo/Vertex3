@@ -113,6 +113,13 @@
                 "key": "Explode2"
             },
             {
+                "url": [
+                    "assets/audio/Explosion31.wav"
+                ],
+                "type": "audio",
+                "key": "Explosion31"
+            },
+            {
                 "url": "assets/FufuSuperDino.png",
                 "type": "image",
                 "key": "FufuSuperDino"
@@ -177,6 +184,11 @@
                 ],
                 "type": "audio",
                 "key": "outro"
+            },
+            {
+                "url": "assets/particleShip.png",
+                "type": "image",
+                "key": "particleShip"
             }
         ]
     },

@@ -333,10 +333,13 @@ export default class Level extends Phaser.Scene {
 	private lifeHearts: Phaser.GameObjects.Image[] = [];
 	private gameOverText?: Phaser.GameObjects.Text;
 	private isGameOver = false;
+	private isRestartingFromGameOver = false;
+	private restartEnterKey?: Phaser.Input.Keyboard.Key;
 
 	create() {
 
 		this.editorCreate();
+		this.resetRuntimeState();
 
 		// Bullets enable pre-solve events; continuous CCD always calls this and
 		// crashes if it is null ("world.preSolveFcn is not a function").
@@ -368,12 +371,17 @@ export default class Level extends Phaser.Scene {
 		this.setupEnemySpawner();
 		this.setupMainShipRespawn();
 		this.setupScoreTracking();
+		this.setupGameOverRestartControls();
 		this.events.on(Phaser.Scenes.Events.POST_UPDATE, this.onPostUpdateEffects, this);
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
 			this.events.off(Phaser.Scenes.Events.POST_UPDATE, this.onPostUpdateEffects, this);
 			this.events.off(MainShipUser.DIED_EVENT, this.onMainShipDied, this);
 			this.events.off(MainShipUser.ENERGY_CHANGED_EVENT, this.onMainShipEnergyChanged, this);
 			this.events.off(Enemy1.DIED_EVENT, this.onEnemy1Died, this);
+			this.input.off(Phaser.Input.Events.POINTER_UP, this.handleGameOverPointerUp, this);
+			this.restartEnterKey?.off(Phaser.Input.Keyboard.Events.DOWN, this.handleGameOverEnterDown, this);
+			this.restartEnterKey?.destroy();
+			this.restartEnterKey = undefined;
 			this.mainShipRespawnTimer?.remove(false);
 			this.mainShipRespawnTimer = undefined;
 			this.enemy1Spawner?.destroy();
@@ -384,6 +392,18 @@ export default class Level extends Phaser.Scene {
 			this.levelMusic?.destroy();
 			this.levelMusic = undefined;
 		});
+	}
+
+	private resetRuntimeState() {
+		this.isGameOver = false;
+		this.isRestartingFromGameOver = false;
+		this.score = 0;
+		this.displayedScore = 0;
+		this.scoreCountTween?.stop();
+		this.scoreCountTween = undefined;
+		this.scorePulseTween?.stop();
+		this.scorePulseTween = undefined;
+		this.remainingLives = this.maxLives;
 	}
 
 	private setupDifficulty() {
@@ -424,6 +444,38 @@ export default class Level extends Phaser.Scene {
 		this.gameOverText.setOrigin(0.5, 0.5);
 		this.gameOverText.setDepth(2000);
 		this.gameOverText.setVisible(false);
+	}
+
+	private setupGameOverRestartControls() {
+		this.input.off(Phaser.Input.Events.POINTER_UP, this.handleGameOverPointerUp, this);
+		this.input.on(Phaser.Input.Events.POINTER_UP, this.handleGameOverPointerUp, this);
+
+		this.restartEnterKey?.off(Phaser.Input.Keyboard.Events.DOWN, this.handleGameOverEnterDown, this);
+		this.restartEnterKey?.destroy();
+		this.restartEnterKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+		this.restartEnterKey?.on(Phaser.Input.Keyboard.Events.DOWN, this.handleGameOverEnterDown, this);
+	}
+
+	private handleGameOverPointerUp() {
+		this.restartIfGameOver();
+	}
+
+	private handleGameOverEnterDown() {
+		this.restartIfGameOver();
+	}
+
+	private restartIfGameOver() {
+		if (!this.isGameOver || this.isRestartingFromGameOver || !this.sys.isActive()) {
+			return;
+		}
+
+		this.isGameOver = false;
+		this.isRestartingFromGameOver = true;
+		this.time.delayedCall(0, () => {
+			if (this.sys.isActive()) {
+				this.scene.restart();
+			}
+		});
 	}
 
 	private refreshLivesHud() {
