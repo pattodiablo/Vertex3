@@ -337,6 +337,7 @@ export default class Level extends Phaser.Scene {
 	private scorePulseTween?: Phaser.Tweens.Tween;
 	private readonly maxLives = 3;
 	private readonly gameOverRestartDelayMs = 1200;
+	private readonly gamepadRestartButtonIndexes = [9, 8];
 	private remainingLives = this.maxLives;
 	private lifeHearts: Phaser.GameObjects.Image[] = [];
 	private gameOverText?: Phaser.GameObjects.Text;
@@ -345,6 +346,7 @@ export default class Level extends Phaser.Scene {
 	private canRestartFromGameOver = false;
 	private isRestartingFromGameOver = false;
 	private wasBlurPaused = false;
+	private wasGamepadRestartPressed = false;
 	private restartEnterKey?: Phaser.Input.Keyboard.Key;
 	private gameOverRestartDelayTimer?: Phaser.Time.TimerEvent;
 
@@ -420,6 +422,7 @@ export default class Level extends Phaser.Scene {
 		this.canRestartFromGameOver = false;
 		this.isRestartingFromGameOver = false;
 		this.wasBlurPaused = false;
+		this.wasGamepadRestartPressed = false;
 		this.timeExpired = false;
 		this.gameOverRestartDelayTimer?.remove(false);
 		this.gameOverRestartDelayTimer = undefined;
@@ -606,6 +609,28 @@ export default class Level extends Phaser.Scene {
 				this.scene.restart();
 			}
 		});
+	}
+
+	private pollGamepadGameOverRestart() {
+		const gamepadManager = this.input.gamepad;
+		if (!gamepadManager) {
+			this.wasGamepadRestartPressed = false;
+			return;
+		}
+
+		const hasRestartPress = gamepadManager.gamepads.some((pad) => {
+			if (!pad?.connected) {
+				return false;
+			}
+
+			return this.gamepadRestartButtonIndexes.some((buttonIndex) => pad.buttons[buttonIndex]?.pressed);
+		});
+
+		if (hasRestartPress && !this.wasGamepadRestartPressed) {
+			this.restartIfGameOver();
+		}
+
+		this.wasGamepadRestartPressed = hasRestartPress;
 	}
 
 	private refreshLivesHud() {
@@ -936,6 +961,7 @@ export default class Level extends Phaser.Scene {
 
 	private onPostUpdateEffects(time: number, delta: number) {
 		const d = delta ?? this.game.loop.delta;
+		this.pollGamepadGameOverRestart();
 		this.updateGameplayTimer(d);
 		this.difficulty?.update(d);
 		this.updateParallax();
