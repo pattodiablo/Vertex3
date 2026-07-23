@@ -113,6 +113,19 @@
                 "key": "Explode2"
             },
             {
+                "url": "assets/Explode3.png",
+                "frameConfig": {
+                    "frameWidth": 128,
+                    "frameHeight": 128,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "Explode3"
+            },
+            {
                 "url": [
                     "assets/audio/Explosion16.wav"
                 ],

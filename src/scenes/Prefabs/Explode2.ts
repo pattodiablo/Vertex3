@@ -10,7 +10,7 @@ import * as Phaser from "phaser";
 export default class Explode2 extends Phaser.GameObjects.Sprite {
 
 	constructor(scene: Phaser.Scene, x?: number, y?: number, texture?: string, frame?: number | string) {
-		super(scene, x ?? 0, y ?? 0, texture || "Explode2", frame ?? 0);
+		super(scene, x ?? 0, y ?? 0, texture || "Explode3", frame ?? 0);
 
 		/* START-USER-CTR-CODE */
 		this.setScale(2);
@@ -23,7 +23,7 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 	/* START-USER-CODE */
 
 	/** Animation key from static/assets/animations.json */
-	static readonly EXPLODE_ANIM = "Explode2";
+	static readonly EXPLODE_ANIM = "Explode3";
 
 	private static readonly PARTICLE_KEY = "explode2-orb";
 
