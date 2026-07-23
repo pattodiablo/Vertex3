@@ -321,7 +321,7 @@ export default class Level extends Phaser.Scene {
 
 	/** Temporary mode: respawn ship after death (other modalities later). */
 	private static readonly BEST_SCORE_STORAGE_KEY = "vertex3-best-score";
-	private readonly gameplayDurationMs = 90_000;
+	private readonly gameplayDurationMs = 120_000;
 	private readonly finalCountdownWarningMs = 10_000;
 	private readonly mainShipRespawnDelayMs = 3000;
 	private readonly mainShipSpawnX = 640;
