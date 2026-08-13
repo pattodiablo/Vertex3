@@ -15,6 +15,7 @@ import AppearEffect from "./AppearEffect";
 import Enemy1 from "./Enemy1";
 import Bullet from "./Bullet";
 import Explode2 from "./Explode2";
+import Explode4 from "./Explode4";
 import { DYNAMIC } from "../../box2d/PhaserBox2D";
 import { RotFromRad } from "../../box2d/PhaserBox2D";
 import { b2BodyId } from "../../box2d/PhaserBox2D";
@@ -397,7 +398,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 		// Big ship explosion
 		if (scene.sys?.isActive()) {
 			this.playDieExplotion();
-			Explode2.spawn(scene, x, y, undefined, 2);
+			Explode4.spawn(scene, x, y, undefined, 2);
 		}
 
 		// Wipe all enemies first (while their scene refs are still valid)

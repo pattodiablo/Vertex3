@@ -7,10 +7,10 @@
 import * as Phaser from "phaser";
 /* END-USER-IMPORTS */
 
-export default class Explode2 extends Phaser.GameObjects.Sprite {
+export default class Explode4 extends Phaser.GameObjects.Sprite {
 
 	constructor(scene: Phaser.Scene, x?: number, y?: number, texture?: string, frame?: number | string) {
-		super(scene, x ?? 0, y ?? 0, texture || "Explode3", frame ?? 0);
+		super(scene, x ?? 0, y ?? 0, texture || "Explode4", frame ?? 0);
 
 		/* START-USER-CTR-CODE */
 		this.setScale(2);
@@ -22,28 +22,20 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 
 	/* START-USER-CODE */
 
-	/** Animation key from static/assets/animations.json */
-	static readonly EXPLODE_ANIM = "Explode3";
+	static readonly EXPLODE_ANIM = "Explode4";
 
-	private static readonly PARTICLE_KEY = "explode2-orb";
-
-	/** Orbs that fly out then float (Megaman death style). Kept light for mobile. */
+	private static readonly PARTICLE_KEY = "explode4-orb";
 	private static readonly ORB_COUNT = 5;
-	/** How long orbs stay on screen floating (ms). */
 	private static readonly ORB_MAX_LIFE = 1100;
 
-	/**
-	 * Spawn a one-shot explosion at (x, y).
-	 * @param scale visual scale of the explode sprite (default 2)
-	 */
 	static spawn(
 		scene: Phaser.Scene,
 		x: number,
 		y: number,
 		onComplete?: () => void,
 		scale?: number
-	): Explode2 {
-		const fx = new Explode2(scene, x, y);
+	): Explode4 {
+		const fx = new Explode4(scene, x, y);
 		fx.setScale(scale ?? Phaser.Math.FloatBetween(0.5, 1));
 		fx.setRotation(Phaser.Math.FloatBetween(0, Math.PI * 2));
 		if (onComplete) {
@@ -53,15 +45,11 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 		return fx;
 	}
 
-	/**
-	 * Play Explode2 once + floating orbs, then destroy the sprite.
-	 * Orbs live on the scene so they keep floating after the anim ends.
-	 */
 	playExplode(onComplete?: () => void) {
 		this.burstFloatingOrbs();
 
 		this.play({
-			key: Explode2.EXPLODE_ANIM,
+			key: Explode4.EXPLODE_ANIM,
 			repeat: 0,
 		});
 
@@ -75,45 +63,35 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 		return this;
 	}
 
-	/**
-	 * Single particle type: burst from center (large → small), no gravity,
-	 * long lifespan so they hang in space like Megaman death balls.
-	 */
 	private burstFloatingOrbs() {
 		const scene = this.scene;
-		Explode2.ensureOrbTexture(scene);
+		Explode4.ensureOrbTexture(scene);
 
-		const orbs = scene.add.particles(this.x, this.y, Explode2.PARTICLE_KEY, {
-			// All directions from the center
+		const orbs = scene.add.particles(this.x, this.y, Explode4.PARTICLE_KEY, {
 			angle: { min: 0, max: 360 },
-			// Moderate push outward (not too fast)
 			speed: { min: 35, max: 75 },
-			// de más a menos: bigger near center, shrink while floating
 			scale: { start: 1.35, end: 0.25 },
-			// Stay bright, fade only late in life
 			alpha: { start: 0.9, end: 0 },
-			lifespan: { min: 850, max: Explode2.ORB_MAX_LIFE },
+			lifespan: { min: 850, max: Explode4.ORB_MAX_LIFE },
 			tint: [0x66ffcc, 0x33ffaa, 0x44ddff, 0xaaffff, 0xffffff],
 			blendMode: Phaser.BlendModes.ADD,
-			// No gravity → float / drift
 			gravityY: 0,
 			emitting: false,
 			quantity: 0,
 		});
 
 		orbs.setDepth(this.depth + 1);
-		orbs.explode(Explode2.ORB_COUNT);
+		orbs.explode(Explode4.ORB_COUNT);
 
-		scene.time.delayedCall(Explode2.ORB_MAX_LIFE + 100, () => {
+		scene.time.delayedCall(Explode4.ORB_MAX_LIFE + 100, () => {
 			if (orbs.scene) {
 				orbs.destroy();
 			}
 		});
 	}
 
-	/** Soft energy-orb texture. */
 	private static ensureOrbTexture(scene: Phaser.Scene) {
-		if (scene.textures.exists(Explode2.PARTICLE_KEY)) {
+		if (scene.textures.exists(Explode4.PARTICLE_KEY)) {
 			return;
 		}
 
@@ -123,7 +101,7 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 		g.fillCircle(size / 2, size / 2, size / 2 - 0.5);
 		g.fillStyle(0xffffff, 1);
 		g.fillCircle(size / 2, size / 2, size / 3);
-		g.generateTexture(Explode2.PARTICLE_KEY, size, size);
+		g.generateTexture(Explode4.PARTICLE_KEY, size, size);
 		g.destroy();
 	}
 
