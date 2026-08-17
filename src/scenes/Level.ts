@@ -29,7 +29,7 @@ import Enemy1 from "./Prefabs/Enemy1";
 import MainShipUser from "./Prefabs/MainShip";
 import LevelMusic from "../audio/LevelMusic";
 import MusicGridPulse from "../audio/MusicGridPulse";
-import Enemy1Spawner from "../enemies/Enemy1Spawner";
+import EnemySpawner from "../enemies/Enemy1Spawner";
 import DifficultyManager from "../game/DifficultyManager";
 /* END-USER-IMPORTS */
 
@@ -246,8 +246,12 @@ export default class Level extends Phaser.Scene {
 
 		WorldStep({ worldId: this.worldId, deltaTime: delta });
 		UpdateWorldSprites(this.worldId);
-		this.debugGraphics.clear();
-		b2World_Draw(this.worldId, this.debugDraw);
+		if (this.showPhysicsDebug) {
+			this.debugGraphics.clear();
+			b2World_Draw(this.worldId, this.debugDraw);
+		} else {
+			this.debugGraphics.clear();
+		}
 	}
 
 	private gameBg!: Phaser.GameObjects.Image;
@@ -280,11 +284,7 @@ export default class Level extends Phaser.Scene {
 	// Kept here so Phaser Editor recompiles don't drop this field
 	public debugDraw!: PhaserDebugDraw;
 
-	/**
-	 * Debug de colisiones Box2D.
-	 * true  = mostrar outlines de física
-	 * false = ocultarlos
-	 */
+	// Cambia esto a true/false para mostrar u ocultar el debug de Box2D.
 	public showPhysicsDebug = false;
 
 	/** Max parallax shift in pixels when the player is at the edge of the screen. */
@@ -315,7 +315,7 @@ export default class Level extends Phaser.Scene {
 	/** Grid scale reacts to music beats / energy */
 	private musicGridPulse?: MusicGridPulse;
 	/** Waves of Enemy1 from off-screen edges */
-	private enemy1Spawner?: Enemy1Spawner;
+	private enemySpawner?: EnemySpawner;
 	/** Survival / progress difficulty scaling */
 	private difficulty?: DifficultyManager;
 
@@ -369,8 +369,8 @@ export default class Level extends Phaser.Scene {
 			return Bullet.onPreSolve(shapeIdA, shapeIdB);
 		}, null);
 
-		if (!this.showPhysicsDebug && this.debugGraphics) {
-			this.debugGraphics.setVisible(false);
+		if (this.debugGraphics) {
+			this.debugGraphics.setVisible(this.showPhysicsDebug);
 		}
 
 		this.setupParallaxLayers();
@@ -407,8 +407,8 @@ export default class Level extends Phaser.Scene {
 			this.mainShipRespawnTimer?.remove(false);
 			this.mainShipRespawnTimer = undefined;
 			this.stopTimeWarningEffect();
-			this.enemy1Spawner?.destroy();
-			this.enemy1Spawner = undefined;
+			this.enemySpawner?.destroy();
+			this.enemySpawner = undefined;
 			this.difficulty = undefined;
 			this.musicGridPulse?.destroy();
 			this.musicGridPulse = undefined;
@@ -701,8 +701,8 @@ export default class Level extends Phaser.Scene {
 		this.gameOverRestartDelayTimer = undefined;
 		this.mainShipRespawnTimer?.remove(false);
 		this.mainShipRespawnTimer = undefined;
-		this.enemy1Spawner?.destroy();
-		this.enemy1Spawner = undefined;
+		this.enemySpawner?.destroy();
+		this.enemySpawner = undefined;
 		this.playLevelOutro();
 		if (!this.gameOverText) {
 			return;
@@ -895,7 +895,7 @@ export default class Level extends Phaser.Scene {
 
 	/** Enemy waves driven by live difficulty params. */
 	private setupEnemySpawner() {
-		this.enemy1Spawner = new Enemy1Spawner(this, {
+		this.enemySpawner = new EnemySpawner(this, {
 			firstWaveDelayMs: 2000,
 			margin: 80,
 			getParams: () =>
@@ -907,7 +907,7 @@ export default class Level extends Phaser.Scene {
 					enemyMoveSpeed: 90,
 				},
 		});
-		this.enemy1Spawner.start();
+		this.enemySpawner.start();
 	}
 
 	/**

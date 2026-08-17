@@ -1,0 +1,75 @@
+{
+    "id": "d5fbbe0d-d93a-46e1-86aa-8400453d6c10",
+    "sceneType": "PREFAB",
+    "settings": {
+        "exportClass": true,
+        "autoImport": true,
+        "superClassName": "EnemyBase",
+        "preloadMethodName": "",
+        "preloadPackFiles": [],
+        "createMethodName": "",
+        "compilerOutputLanguage": "TYPE_SCRIPT",
+        "borderWidth": 1280,
+        "borderHeight": 720
+    },
+    "displayList": [
+        {
+            "type": "Sprite",
+            "id": "ef1bdbda-3d19-44eb-a8b8-544ef3df8660",
+            "label": "enemy2",
+            "texture": {
+                "key": "enemy2"
+            },
+            "list": [
+                {
+                    "type": "b2Body",
+                    "id": "951e1fef-788f-4c2e-9064-892d33b8bbb7",
+                    "label": "body",
+                    "list": [
+                        {
+                            "type": "b2PolygonShape",
+                            "id": "82e0e978-5188-4c2d-8872-08f3874a0b42",
+                            "label": "shape",
+                            "points": "-28 -34.5 28 -34.5 28 34.5 -28 34.5"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "plainObjects": [],
+    "meta": {
+        "app": "Phaser Editor - Scene Editor",
+        "url": "https://phaser.io/editor",
+        "contentType": "phasereditor2d.core.scene.SceneContentType",
+        "version": 5
+    },
+    "prefabProperties": [
+        {
+            "name": "horizontalDirection",
+            "label": "horizontalDirection",
+            "tooltip": "",
+            "defValue": 0,
+            "customDefinition": false,
+            "editorOnly": false,
+            "deprecated": false,
+            "type": {
+                "id": "number",
+                "isArray": false
+            }
+        },
+        {
+            "name": "travelPadding",
+            "label": "travelPadding",
+            "tooltip": "",
+            "defValue": 90,
+            "customDefinition": false,
+            "editorOnly": false,
+            "deprecated": false,
+            "type": {
+                "id": "number",
+                "isArray": false
+            }
+        }
+    ]
+}

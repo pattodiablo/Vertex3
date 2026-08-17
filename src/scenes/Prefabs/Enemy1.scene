@@ -4,6 +4,7 @@
     "settings": {
         "exportClass": true,
         "autoImport": true,
+        "superClassName": "EnemyBase",
         "preloadMethodName": "",
         "preloadPackFiles": [],
         "createMethodName": "",

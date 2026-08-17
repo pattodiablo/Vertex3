@@ -38,6 +38,7 @@ export default class Bullet extends Phaser.GameObjects.Image {
 	private static readonly bulletsByBodyKey = new Map<string, Bullet>();
 	private static readonly pendingDestroyKeys = new Set<string>();
 	private static readonly wallImpactKeys = new Set<string>();
+	private static readonly BULLET_DEPTH = 12;
 
 	private static readonly BULLET_CATEGORY = 0x0002;
 	private static readonly WALL_CATEGORY = 0x0001;
@@ -47,6 +48,7 @@ export default class Bullet extends Phaser.GameObjects.Image {
 
 	constructor(scene: Phaser.Scene, x?: number, y?: number, angle = 0, speed = 28, texture?: string, frame?: number | string) {
 		super(scene, x ?? 0, y ?? 0, texture || "Bullet", frame);
+		this.setDepth(Bullet.BULLET_DEPTH);
 
 		// body_1
 		const body_1 = b2CreateBody((this.scene as any).worldId, { 

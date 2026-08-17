@@ -82,6 +82,11 @@
                 "key": "enemy1"
             },
             {
+                "url": "assets/enemy2.png",
+                "type": "image",
+                "key": "enemy2"
+            },
+            {
                 "url": "assets/energyParticle.png",
                 "type": "image",
                 "key": "energyParticle"
