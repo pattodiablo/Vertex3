@@ -23,6 +23,7 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 	static readonly BULLET_CATEGORY = 0x0002;
 
 	private static readonly enemiesByBodyKey = new Map<string, EnemyBase>();
+	private static readonly openPortalPool: OpenPortal[] = [];
 	private static readonly box2d = PhaserBox2D as typeof PhaserBox2D & {
 		b2Body_SetTransform(bodyId: b2BodyId, position: b2Vec2, rotation?: ReturnType<typeof RotFromRad>): void;
 		b2Body_SetLinearVelocity(bodyId: b2BodyId, linearVelocity: b2Vec2): void;
@@ -103,23 +104,34 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 			b2.b2Body_SetTransform(this.bodyId, pxmVec2(this.spawnX, -this.spawnY), RotFromRad(this.spawnRotation));
 		}
 		this.disableBody();
-		const portal = new OpenPortal(this.scene, this.spawnX, this.spawnY);
-		this.scene.add.existing(portal);
-		portal.setScale(0.5);
+		const portal = EnemyBase.acquireOpenPortal(this.scene, this.spawnX, this.spawnY);
+		let portalFinished = false;
+		const finishPortal = () => {
+			if (portalFinished) return;
+			portalFinished = true;
+			EnemyBase.releaseOpenPortal(portal);
+		};
 		portal.play("openPortal");
 		portal.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-			if (!this.active) return;
-			this.x = this.spawnX; this.y = this.spawnY; this.rotation = this.spawnRotation;
-			this.setVisible(true); this.setScale(0);
-			this.scene.tweens.add({ targets: this, scaleX: this.finalScaleX, scaleY: this.finalScaleY, x: this.spawnX, y: this.spawnY, duration: this.appearScaleDuration, ease: "Bounce.easeOut", onComplete: () => {
-				if (!this.active) return;
-				this.x = this.spawnX; this.y = this.spawnY; this.rotation = this.spawnRotation; this.setScale(this.finalScaleX, this.finalScaleY);
-				this.syncBodyTransform(); this.enableBody(); this.attachToWorldSprites(); this.isAppeared = true; this.isAppearing = false; onComplete?.();
-			}});
-			if (portal.active) {
-				portal.destroy();
-			}
+			finishPortal();
+			this.showAfterPortal(onComplete);
 		});
+		this.scene.time.delayedCall(700, () => {
+			finishPortal();
+			this.showAfterPortal(onComplete);
+		});
+	}
+
+	private showAfterPortal(onComplete?: () => void) {
+		if (!this.active) return;
+		if (this.isAppeared) return;
+		this.x = this.spawnX; this.y = this.spawnY; this.rotation = this.spawnRotation;
+		this.setVisible(true); this.setScale(0);
+		this.scene.tweens.add({ targets: this, scaleX: this.finalScaleX, scaleY: this.finalScaleY, x: this.spawnX, y: this.spawnY, duration: this.appearScaleDuration, ease: "Bounce.easeOut", onComplete: () => {
+			if (!this.active) return;
+			this.x = this.spawnX; this.y = this.spawnY; this.rotation = this.spawnRotation; this.setScale(this.finalScaleX, this.finalScaleY);
+			this.syncBodyTransform(); this.enableBody(); this.attachToWorldSprites(); this.isAppeared = true; this.isAppearing = false; onComplete?.();
+		}});
 	}
 
 	get hasAppeared() { return this.isAppeared; }
@@ -155,6 +167,39 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 	protected getEnemyLife() {
 		const configuredLife = Number((this as { EnemyLife?: number }).EnemyLife);
 		return Number.isFinite(configuredLife) && configuredLife > 0 ? configuredLife : this.defaultEnemyLife;
+	}
+	private static acquireOpenPortal(scene: Phaser.Scene, x: number, y: number) {
+		const portal = EnemyBase.openPortalPool.pop() ?? new OpenPortal(scene, x, y);
+		if (!portal.scene) {
+			scene.add.existing(portal);
+		}
+		portal.setPosition(x, y);
+		portal.setVisible(true);
+		portal.setActive(true);
+		portal.setScale(0.5);
+		portal.setAlpha(1);
+		portal.setRotation(0);
+		portal.anims?.stop();
+		portal.setFrame(20);
+		return portal;
+	}
+	private static releaseOpenPortal(portal: OpenPortal) {
+		portal.removeAllListeners(Phaser.Animations.Events.ANIMATION_COMPLETE);
+		portal.anims?.stop();
+		portal.setActive(false);
+		portal.setVisible(false);
+		EnemyBase.openPortalPool.push(portal);
+	}
+
+	static warmOpenPortalPool(scene: Phaser.Scene, count = 30) {
+		for (let i = EnemyBase.openPortalPool.length; i < count; i++) {
+			const portal = new OpenPortal(scene, 0, 0);
+			scene.add.existing(portal);
+			portal.stop();
+			portal.setActive(false);
+			portal.setVisible(false);
+			EnemyBase.openPortalPool.push(portal);
+		}
 	}
 	private getMainShip(): MainShip | null { const scene = this.scene as (Phaser.Scene & { mainShip?: MainShip }) | undefined; if (!scene || !scene.sys?.isActive()) return null; return scene.mainShip ?? null; }
 	private static makeBodyKey(bodyId: b2BodyId) { return `${bodyId.world0}:${bodyId.index1}:${bodyId.revision}`; }

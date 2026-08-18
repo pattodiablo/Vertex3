@@ -7,6 +7,8 @@ import Enemy5 from "../scenes/Prefabs/Enemy5";
 import Enemy6 from "../scenes/Prefabs/Enemy6";
 import Enemy7 from "../scenes/Prefabs/Enemy7";
 import Enemy8 from "../scenes/Prefabs/Enemy8";
+import EnemyBase from "../scenes/Prefabs/EnemyBase";
+import Explode2 from "../scenes/Prefabs/Explode2";
 import type { DifficultySpawnParams } from "../game/DifficultyManager";
 
 type Edge = "top" | "bottom" | "left" | "right";
@@ -68,6 +70,8 @@ export default class EnemySpawner {
 			return;
 		}
 
+		EnemyBase.warmOpenPortalPool(this.scene, 30);
+		Explode2.warmPool(this.scene, 20);
 		this.startTimeMs = this.scene.time.now;
 
 		this.scene.time.delayedCall(this.firstWaveDelayMs, () => {

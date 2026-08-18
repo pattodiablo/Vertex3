@@ -8,15 +8,13 @@ import * as Phaser from "phaser";
 /* END-USER-IMPORTS */
 
 export default class Explode2 extends Phaser.GameObjects.Sprite {
+	private static readonly pool: Explode2[] = [];
 
 	constructor(scene: Phaser.Scene, x?: number, y?: number, texture?: string, frame?: number | string) {
 		super(scene, x ?? 0, y ?? 0, texture || "Explode3", frame ?? 0);
 
 		/* START-USER-CTR-CODE */
 		this.setScale(2);
-		this.once(Phaser.GameObjects.Events.ADDED_TO_SCENE, () => {
-			this.playExplode();
-		});
 		/* END-USER-CTR-CODE */
 	}
 
@@ -43,14 +41,33 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 		onComplete?: () => void,
 		scale?: number
 	): Explode2 {
-		const fx = new Explode2(scene, x, y);
+		const fx = Explode2.pool.pop() ?? new Explode2(scene, x, y);
+		if (!fx.scene) {
+			scene.add.existing(fx);
+		}
+		fx.setPosition(x, y);
+		fx.setVisible(true);
+		fx.setActive(true);
+		fx.setAlpha(1);
 		fx.setScale(scale ?? Phaser.Math.FloatBetween(0.5, 1));
 		fx.setRotation(Phaser.Math.FloatBetween(0, Math.PI * 2));
-		if (onComplete) {
-			fx.once(Phaser.Animations.Events.ANIMATION_COMPLETE, onComplete);
-		}
-		scene.add.existing(fx);
+		fx.anims.stop();
+		fx.setFrame(0);
+		fx.removeAllListeners(Phaser.Animations.Events.ANIMATION_COMPLETE);
+		if (onComplete) fx.once(Phaser.Animations.Events.ANIMATION_COMPLETE, onComplete);
+		fx.playExplode();
 		return fx;
+	}
+
+	static warmPool(scene: Phaser.Scene, count = 20) {
+		for (let i = Explode2.pool.length; i < count; i++) {
+			const fx = new Explode2(scene, 0, 0);
+			scene.add.existing(fx);
+			fx.setScale(2);
+			fx.setActive(false);
+			fx.setVisible(false);
+			Explode2.pool.push(fx);
+		}
 	}
 
 	/**
@@ -68,7 +85,9 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 		this.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
 			onComplete?.();
 			if (this.active) {
-				this.destroy();
+				this.setActive(false);
+				this.setVisible(false);
+				Explode2.pool.push(this);
 			}
 		});
 
