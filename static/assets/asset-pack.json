@@ -87,6 +87,36 @@
                 "key": "enemy2"
             },
             {
+                "url": "assets/enemy3.png",
+                "type": "image",
+                "key": "enemy3"
+            },
+            {
+                "url": "assets/enemy4.png",
+                "type": "image",
+                "key": "enemy4"
+            },
+            {
+                "url": "assets/enemy5.png",
+                "type": "image",
+                "key": "enemy5"
+            },
+            {
+                "url": "assets/enemy6.png",
+                "type": "image",
+                "key": "enemy6"
+            },
+            {
+                "url": "assets/enemy7.png",
+                "type": "image",
+                "key": "enemy7"
+            },
+            {
+                "url": "assets/enemy8.png",
+                "type": "image",
+                "key": "enemy8"
+            },
+            {
                 "url": "assets/energyParticle.png",
                 "type": "image",
                 "key": "energyParticle"
@@ -208,6 +238,19 @@
                 ],
                 "type": "audio",
                 "key": "mid"
+            },
+            {
+                "url": "assets/OpenPortal.png",
+                "frameConfig": {
+                    "frameWidth": 256,
+                    "frameHeight": 256,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "OpenPortal"
             },
             {
                 "url": "assets/fonts/Orbitron.ttf",

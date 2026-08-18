@@ -45,7 +45,7 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 	private moveSpeed = 90;
 	private readonly arriveDistance = 4;
 	private readonly faceTarget = true;
-	private readonly maxHp = 5;
+	private readonly defaultEnemyLife = 5;
 	private hp = 5;
 	private readonly hitRadius = 32;
 	private readonly shipHitRadius = 42;
@@ -93,7 +93,7 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 		this.isAppearing = true;
 		this.isAppeared = false;
 		this.isDead = false;
-		this.hp = this.maxHp;
+		this.hp = this.getEnemyLife();
 		this.setVisible(false);
 		this.setScale(0);
 		if (!this.detachedFromWorldSprites) this.detachFromWorldSprites();
@@ -135,7 +135,7 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 	preUpdate(_time: number, delta: number) { if (this.isDead || !this.active || !this.scene?.sys?.isActive()) return; if (!this.isAppeared) { if (this.isAppearing) { this.x = this.spawnX; this.y = this.spawnY; this.rotation = this.spawnRotation; } return; } if (!this.visible) return; this.updateMovement(delta); this.syncBodyTransform(); this.checkBulletHits(); this.checkShipCollision(); }
 	protected updateMovement(delta: number) { this.chaseMainShip(delta); }
 	protected checkBulletHits() { const r2 = this.hitRadius * this.hitRadius; Bullet.forEachActive((bullet) => { const dx = bullet.x - this.x; const dy = bullet.y - this.y; if (dx * dx + dy * dy > r2) return; if (Bullet.tryQueueDestroy(bullet.bodyId)) this.takeDamage(1); }); }
-	protected chaseMainShip(delta: number) { const ship = this.getMainShip(); if (!ship || !ship.active || !ship.visible || ship.hasDied) return; if (typeof ship.hasAppeared === "boolean" && !ship.hasAppeared) return; const dx = ship.x - this.x; const dy = ship.y - this.y; const dist = Math.hypot(dx, dy); if (dist <= this.arriveDistance) return; const step = (this.moveSpeed * delta) / 1000; const nx = dx / dist; const ny = dy / dist; const travel = Math.min(step, dist - this.arriveDistance); this.x += nx * travel; this.y += ny * travel; if (this.faceTarget) this.rotation = Math.atan2(dy, dx); }
+	protected chaseMainShip(delta: number) { const ship = this.getMainShip(); const step = (this.moveSpeed * delta) / 1000; if (!ship || !ship.active || !ship.visible || ship.hasDied || (typeof ship.hasAppeared === "boolean" && !ship.hasAppeared)) { const angle = Number.isFinite(this.rotation) ? this.rotation : this.spawnRotation; this.x += Math.cos(angle) * step; this.y += Math.sin(angle) * step; return; } const dx = ship.x - this.x; const dy = ship.y - this.y; const dist = Math.hypot(dx, dy); if (dist <= this.arriveDistance) return; const nx = dx / dist; const ny = dy / dist; const travel = Math.min(step, dist - this.arriveDistance); this.x += nx * travel; this.y += ny * travel; if (this.faceTarget) this.rotation = Math.atan2(dy, dx); }
 	protected checkShipCollision() { const ship = this.getMainShip(); if (!ship || !ship.active || !ship.visible || ship.hasDied || !ship.hasAppeared) return; const dx = ship.x - this.x; const dy = ship.y - this.y; const r = this.shipHitRadius; if (dx * dx + dy * dy <= r * r) ship.dieFromEnemyHit(); }
 	die(grantRewards = true) { if (this.isDead) return; this.isDead = true; this.isAppeared = false; const x = this.x; const y = this.y; const scene = this.scene; this.teardownPhysics(); if (scene?.sys?.isActive()) { Explode2.spawn(scene, x, y); energyParticle.spawnBurst(scene, x, y); if (grantRewards) scene.events.emit(EnemyBase.DIED_EVENT, { baseScore: 10, x, y }); } if (this.active) this.destroy(); }
 	protected syncBodyTransform() { if (!this.bodyId) return; const b2 = EnemyBase.box2d; b2.b2Body_SetTransform(this.bodyId, pxmVec2(this.x, -this.y), RotFromRad(this.rotation)); b2.b2Body_SetLinearVelocity(this.bodyId, new b2Vec2(0, 0)); b2.b2Body_SetAngularVelocity(this.bodyId, 0); }
@@ -145,6 +145,10 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 	protected attachToWorldSprites() { const worldId = (this.scene as any).worldId; if (!worldId || !this.bodyId) return; try { AddSpriteToWorld(worldId, this, { bodyId: this.bodyId }); this.detachedFromWorldSprites = false; } catch { } }
 	protected detachFromWorldSprites() { const worldId = (this.scene as any).worldId; if (!worldId || !this.bodyId) return; try { RemoveSpriteFromWorld(worldId, this, false); this.detachedFromWorldSprites = true; } catch { } }
 	protected lockSpawnPose(x: number, y: number, rotation = 0) { this.spawnX = x; this.spawnY = y; this.spawnRotation = rotation; this.spawnPoseLocked = true; this.x = x; this.y = y; this.rotation = rotation; }
+	protected getEnemyLife() {
+		const configuredLife = Number((this as { EnemyLife?: number }).EnemyLife);
+		return Number.isFinite(configuredLife) && configuredLife > 0 ? configuredLife : this.defaultEnemyLife;
+	}
 	private getMainShip(): MainShip | null { const scene = this.scene as (Phaser.Scene & { mainShip?: MainShip }) | undefined; if (!scene || !scene.sys?.isActive()) return null; return scene.mainShip ?? null; }
 	private static makeBodyKey(bodyId: b2BodyId) { return `${bodyId.world0}:${bodyId.index1}:${bodyId.revision}`; }
 }

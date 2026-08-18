@@ -1,6 +1,12 @@
 import * as Phaser from "phaser";
 import Enemy1 from "../scenes/Prefabs/Enemy1";
 import Enemy2 from "../scenes/Prefabs/Enemy2";
+import Enemy3 from "../scenes/Prefabs/Enemy3";
+import Enemy4 from "../scenes/Prefabs/Enemy4";
+import Enemy5 from "../scenes/Prefabs/Enemy5";
+import Enemy6 from "../scenes/Prefabs/Enemy6";
+import Enemy7 from "../scenes/Prefabs/Enemy7";
+import Enemy8 from "../scenes/Prefabs/Enemy8";
 import type { DifficultySpawnParams } from "../game/DifficultyManager";
 
 type Edge = "top" | "bottom" | "left" | "right";
@@ -29,16 +35,25 @@ const DEFAULT_PARAMS: DifficultySpawnParams = {
  * come from DifficultyManager via getParams().
  */
 export default class EnemySpawner {
+	private static readonly ENEMY_UNLOCK_WINDOW_MS = 20 * 1000;
+	private static readonly ENEMY_TYPES_BY_STAGE = [
+		[Enemy1],
+		[Enemy1, Enemy2],
+		[Enemy1, Enemy2, Enemy3, Enemy4],
+		[Enemy1, Enemy2, Enemy3, Enemy4, Enemy5, Enemy6],
+		[Enemy1, Enemy2, Enemy3, Enemy4, Enemy5, Enemy6, Enemy7, Enemy8],
+	];
+
 	private readonly scene: Phaser.Scene;
 	private readonly firstWaveDelayMs: number;
 	private readonly margin: number;
 	private readonly edgeSpread: number;
 	private readonly getParams: () => DifficultySpawnParams;
-	private readonly maxLivingEnemies = 10;
-	private readonly enemy2Chance = 0.25;
+	private readonly maxLivingEnemies = 24;
 
 	private waveTimer?: Phaser.Time.TimerEvent;
 	private destroyed = false;
+	private startTimeMs = 0;
 
 	constructor(scene: Phaser.Scene, config: EnemySpawnerConfig = {}) {
 		this.scene = scene;
@@ -52,6 +67,8 @@ export default class EnemySpawner {
 		if (this.destroyed) {
 			return;
 		}
+
+		this.startTimeMs = this.scene.time.now;
 
 		this.scene.time.delayedCall(this.firstWaveDelayMs, () => {
 			if (this.destroyed || !this.scene.sys.isActive()) {
@@ -117,33 +134,45 @@ export default class EnemySpawner {
 	}
 
 	private spawnOne(x: number, y: number, moveSpeed: number) {
-		if (Phaser.Math.FloatBetween(0, 1) > this.enemy2Chance) {
-			const enemy = new Enemy1(this.scene, x, y);
-			enemy.setMoveSpeed(moveSpeed);
-			enemy.setDepth(8);
-			this.scene.add.existing(enemy);
+		const unlockedTypes = this.getUnlockedEnemyTypes();
+
+		const EnemyClass = unlockedTypes[Phaser.Math.Between(0, unlockedTypes.length - 1)];
+		if (EnemyClass === Enemy7) {
+			this.spawnEnemy7Pack(x, y, moveSpeed);
 			return;
 		}
 
-		this.spawnEnemy2Pack(x, y, moveSpeed);
+		const enemy = new EnemyClass(this.scene, x, y);
+		enemy.setMoveSpeed(EnemyClass === Enemy4 ? Math.max(moveSpeed + 35, 130) : moveSpeed);
+		enemy.setDepth(8);
+		this.scene.add.existing(enemy);
 	}
 
-	private spawnEnemy2Pack(x: number, y: number, moveSpeed: number) {
+	private spawnEnemy7Pack(x: number, y: number, moveSpeed: number) {
 		const ship = (this.scene as Phaser.Scene & { mainShip?: { x: number; y: number } }).mainShip;
-		const offsets = [-72, 0, 72];
+		const offsets = [-70, 0, 70];
 		const sceneHeight = this.scene.scale.height || 720;
 		const margin = this.margin;
 		const centerY = Phaser.Math.Clamp(
-			(ship?.y ?? y) + Phaser.Math.Between(-120, 120),
+			(ship?.y ?? y) + Phaser.Math.Between(-110, 110),
 			margin + 40,
 			sceneHeight - margin - 40
 		);
 		for (const offset of offsets) {
-			const enemy = new Enemy2(this.scene, x, centerY + offset);
+			const enemy = new Enemy7(this.scene, x, centerY + offset);
 			enemy.setMoveSpeed(moveSpeed);
 			enemy.setDepth(8);
 			this.scene.add.existing(enemy);
 		}
+	}
+
+	private getUnlockedEnemyTypes() {
+		const elapsedMs = Math.max(0, this.scene.time.now - this.startTimeMs);
+		const stageIndex = Math.min(
+			EnemySpawner.ENEMY_TYPES_BY_STAGE.length - 1,
+			Math.floor(elapsedMs / EnemySpawner.ENEMY_UNLOCK_WINDOW_MS)
+		);
+		return EnemySpawner.ENEMY_TYPES_BY_STAGE[stageIndex];
 	}
 
 	private randomEdge(): Edge {
@@ -155,6 +184,8 @@ export default class EnemySpawner {
 		const w = this.scene.scale.width || 1280;
 		const h = this.scene.scale.height || 720;
 		const m = this.margin;
+		const insetX = Math.max(m, 40);
+		const insetY = Math.max(m, 40);
 		const points: Array<{ x: number; y: number }> = [];
 		const centerT = Phaser.Math.FloatBetween(0.15, 0.85);
 
@@ -165,20 +196,21 @@ export default class EnemySpawner {
 					: centerT + ((i / (count - 1)) - 0.5) * (this.edgeSpread / Math.max(w, h));
 			const along = Phaser.Math.Clamp(t, 0.05, 0.95);
 			const jitter = Phaser.Math.Between(-24, 24);
-			const out = m + Phaser.Math.Between(0, 50);
+			const x = Phaser.Math.Clamp(along * w + jitter, insetX, w - insetX);
+			const y = Phaser.Math.Clamp(along * h + jitter, insetY, h - insetY);
 
 			switch (edge) {
 				case "top":
-					points.push({ x: along * w + jitter, y: -out });
+					points.push({ x, y: insetY });
 					break;
 				case "bottom":
-					points.push({ x: along * w + jitter, y: h + out });
+					points.push({ x, y: h - insetY });
 					break;
 				case "left":
-					points.push({ x: -out, y: along * h + jitter });
+					points.push({ x: insetX, y });
 					break;
 				case "right":
-					points.push({ x: w + out, y: along * h + jitter });
+					points.push({ x: w - insetX, y });
 					break;
 			}
 		}

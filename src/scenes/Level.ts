@@ -16,6 +16,9 @@ import { pxm } from "../box2d/PhaserBox2D";
 import { b2MakeBox } from "../box2d/PhaserBox2D";
 import { RotFromRad } from "../box2d/PhaserBox2D";
 import MainShip from "./Prefabs/MainShip";
+import OpenPortal from "./Prefabs/OpenPortal";
+import AppearEffect from "./Prefabs/AppearEffect";
+import AppearAnimPrefab from "./Prefabs/AppearAnimPrefab";
 import { WorldStep } from "../box2d/PhaserBox2D";
 import { UpdateWorldSprites } from "../box2d/PhaserBox2D";
 import { b2World_Draw } from "../box2d/PhaserBox2D";
@@ -211,6 +214,18 @@ export default class Level extends Phaser.Scene {
 		bestText.text = "000000000";
 		bestText.setStyle({ "color": "#6CEE57", "fontFamily": "Orbitron", "fontSize": "22pt", "shadow.offsetX": 3, "shadow.offsetY": 3, "shadow.stroke": true });
 
+		// openPortal20
+		const openPortal20 = new OpenPortal(this, 770, 465);
+		this.add.existing(openPortal20);
+
+		// appearEffect
+		const appearEffect = new AppearEffect(this, 900, 404);
+		this.add.existing(appearEffect);
+
+		// appearAnimPrefab
+		const appearAnimPrefab = new AppearAnimPrefab(this, 759, 315);
+		this.add.existing(appearAnimPrefab);
+
 		// Box2D debug graphics
 		this.debugGraphics = this.add.graphics();
 		this.debugDraw = new PhaserDebugDraw(this.debugGraphics, this.game.scale.width, this.game.scale.height, 40);
@@ -246,12 +261,8 @@ export default class Level extends Phaser.Scene {
 
 		WorldStep({ worldId: this.worldId, deltaTime: delta });
 		UpdateWorldSprites(this.worldId);
-		if (this.showPhysicsDebug) {
-			this.debugGraphics.clear();
-			b2World_Draw(this.worldId, this.debugDraw);
-		} else {
-			this.debugGraphics.clear();
-		}
+		this.debugGraphics.clear();
+		b2World_Draw(this.worldId, this.debugDraw);
 	}
 
 	private gameBg!: Phaser.GameObjects.Image;

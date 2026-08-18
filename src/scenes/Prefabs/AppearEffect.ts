@@ -10,7 +10,10 @@ import * as Phaser from "phaser";
 export default class AppearEffect extends Phaser.GameObjects.Sprite {
 
 	constructor(scene: Phaser.Scene, x?: number, y?: number, texture?: string, frame?: number | string) {
-		super(scene, x ?? 0, y ?? 0, texture || "AppearEffect2", frame ?? 0);
+		super(scene, x ?? 0, y ?? 0, texture || "appearEffect", frame ?? 1);
+
+		this.scaleX = 0.6;
+		this.scaleY = 0.6;
 
 		/* START-USER-CTR-CODE */
 		// Playback is controlled by playAppear() / spawn() so callers can choose loop vs one-shot.

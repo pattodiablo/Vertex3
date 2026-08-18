@@ -1,5 +1,5 @@
 {
-    "id": "d5fbbe0d-d93a-46e1-86aa-8400453d6c10",
+    "id": "03c225cb-0e73-49b3-ab86-015f1a562f07",
     "sceneType": "PREFAB",
     "settings": {
         "exportClass": true,
@@ -15,22 +15,22 @@
     "displayList": [
         {
             "type": "Sprite",
-            "id": "ef1bdbda-3d19-44eb-a8b8-544ef3df8660",
-            "label": "enemy2",
+            "id": "d7d98ff0-4039-49de-96c4-3092e1dc3a7a",
+            "label": "enemy6",
             "texture": {
-                "key": "enemy2"
+                "key": "enemy6"
             },
             "list": [
                 {
                     "type": "b2Body",
-                    "id": "951e1fef-788f-4c2e-9064-892d33b8bbb7",
+                    "id": "b037b89c-73e0-43b0-a108-1960342fba7e",
                     "label": "body",
                     "list": [
                         {
                             "type": "b2PolygonShape",
-                            "id": "82e0e978-5188-4c2d-8872-08f3874a0b42",
+                            "id": "45a39710-8507-42c7-aa70-598936bf6f17",
                             "label": "shape",
-                            "points": "-28 -34.5 28 -34.5 28 34.5 -28 34.5"
+                            "points": "-22 -40.5 22 -40.5 22 40.5 -22 40.5"
                         }
                     ]
                 }
@@ -46,36 +46,10 @@
     },
     "prefabProperties": [
         {
-            "name": "horizontalDirection",
-            "label": "horizontalDirection",
-            "tooltip": "",
-            "defValue": 0,
-            "customDefinition": false,
-            "editorOnly": false,
-            "deprecated": false,
-            "type": {
-                "id": "number",
-                "isArray": false
-            }
-        },
-        {
-            "name": "travelPadding",
-            "label": "travelPadding",
-            "tooltip": "",
-            "defValue": 90,
-            "customDefinition": false,
-            "editorOnly": false,
-            "deprecated": false,
-            "type": {
-                "id": "number",
-                "isArray": false
-            }
-        },
-        {
             "name": "EnemyLife",
             "label": "EnemyLife",
             "tooltip": "",
-            "defValue": 3,
+            "defValue": 1,
             "customDefinition": false,
             "editorOnly": false,
             "deprecated": false,

@@ -119,7 +119,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 	};
 
 	private readonly moveSpeed = 14;
-	private readonly turnSpeed = 5.5;
+	private readonly turnSpeed = 7;
 	private readonly linearDrag = 0.90;
 	private readonly angularDrag = 0.82;
 

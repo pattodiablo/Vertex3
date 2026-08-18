@@ -1,5 +1,5 @@
 {
-    "id": "b6694619-ff7e-4806-91b5-8e42b5dc966f",
+    "id": "9e6a8dd3-6102-4241-b058-d4045f2b5823",
     "sceneType": "PREFAB",
     "settings": {
         "exportClass": true,
@@ -14,14 +14,12 @@
     "displayList": [
         {
             "type": "Sprite",
-            "id": "5538f77b-75d4-4e84-8728-fd15b1761871",
-            "label": "appearEffect1",
+            "id": "55c3dfd1-1099-4357-8956-f0a06359670d",
+            "label": "openPortal20",
             "texture": {
-                "key": "appearEffect",
-                "frame": 1
-            },
-            "scaleX": 0.6,
-            "scaleY": 0.6
+                "key": "OpenPortal",
+                "frame": 20
+            }
         }
     ],
     "plainObjects": [],

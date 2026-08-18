@@ -45,8 +45,11 @@ export default class Enemy1 extends EnemyBase {
 		/* START-USER-CTR-CODE */
 		this.initCollision(body, shape);
 		this.finalizeSpawn();
+			this.setScale(1);
 		/* END-USER-CTR-CODE */
 	}
+
+	public EnemyLife: number = 2;
 
 	/* START-USER-CODE */
 	/* END-USER-CODE */

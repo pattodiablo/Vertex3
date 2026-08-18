@@ -99,23 +99,23 @@ export default class DifficultyManager {
 		const lerp = (a: number, b: number, u: number) => a + (b - a) * Math.min(1, Math.max(0, u));
 
 		// Group size grows with difficulty
-		const minGroup = Math.round(lerp(6, 24, t));
-		const maxGroup = Math.round(lerp(10, 32, t));
+		const minGroup = Math.round(lerp(8, 28, t));
+		const maxGroup = Math.round(lerp(14, 38, t));
 
 		// Waves come faster
-		const waveIntervalMs = Math.round(lerp(9000, 2800, t));
+		const waveIntervalMs = Math.round(lerp(6500, 1800, t));
 
 		// Tighter stagger at high difficulty
-		const staggerMs = Math.round(lerp(140, 45, t));
+		const staggerMs = Math.round(lerp(95, 28, t));
 
 		// Enemies chase faster
-		const enemyMoveSpeed = Math.round(lerp(70, 155, t));
+		const enemyMoveSpeed = Math.round(lerp(80, 175, t));
 
 		return {
 			minGroup: Math.max(3, minGroup),
 			maxGroup: Math.max(minGroup, maxGroup),
-			waveIntervalMs: Math.max(2000, waveIntervalMs),
-			staggerMs: Math.max(30, staggerMs),
+			waveIntervalMs: Math.max(1400, waveIntervalMs),
+			staggerMs: Math.max(24, staggerMs),
 			enemyMoveSpeed: Math.max(50, enemyMoveSpeed),
 		};
 	}

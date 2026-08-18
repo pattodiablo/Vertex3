@@ -45,5 +45,20 @@
         "url": "https://phaser.io/editor",
         "contentType": "phasereditor2d.core.scene.SceneContentType",
         "version": 5
-    }
+    },
+    "prefabProperties": [
+        {
+            "name": "EnemyLife",
+            "label": "EnemyLife",
+            "tooltip": "",
+            "defValue": 2,
+            "customDefinition": false,
+            "editorOnly": false,
+            "deprecated": false,
+            "type": {
+                "id": "number",
+                "isArray": false
+            }
+        }
+    ]
 }
