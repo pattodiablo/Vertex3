@@ -60,6 +60,7 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 	}
 
 	static warmPool(scene: Phaser.Scene, count = 20) {
+		Explode2.clearRuntimePool();
 		for (let i = Explode2.pool.length; i < count; i++) {
 			const fx = new Explode2(scene, 0, 0);
 			scene.add.existing(fx);
@@ -68,6 +69,14 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 			fx.setVisible(false);
 			Explode2.pool.push(fx);
 		}
+	}
+
+	static clearRuntimePool() {
+		for (const fx of Explode2.pool) {
+			fx.removeAllListeners();
+			fx.destroy();
+		}
+		Explode2.pool.length = 0;
 	}
 
 	/**

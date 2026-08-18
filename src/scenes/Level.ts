@@ -31,6 +31,8 @@ import LevelMusic from "../audio/LevelMusic";
 import MusicGridPulse from "../audio/MusicGridPulse";
 import EnemySpawner from "../enemies/Enemy1Spawner";
 import DifficultyManager from "../game/DifficultyManager";
+import EnemyBase from "./Prefabs/EnemyBase";
+import Explode2 from "./Prefabs/Explode2";
 /* END-USER-IMPORTS */
 
 export default class Level extends Phaser.Scene {
@@ -317,7 +319,7 @@ export default class Level extends Phaser.Scene {
 
 	/** Temporary mode: respawn ship after death (other modalities later). */
 	private static readonly BEST_SCORE_STORAGE_KEY = "vertex3-best-score";
-	private readonly gameplayDurationMs = 120_000;
+	private readonly gameplayDurationMs = 180_000;
 	private readonly finalCountdownWarningMs = 10_000;
 	private readonly mainShipRespawnDelayMs = 3000;
 	private readonly mainShipSpawnX = 640;
@@ -406,6 +408,8 @@ export default class Level extends Phaser.Scene {
 			this.enemySpawner?.destroy();
 			this.enemySpawner = undefined;
 			this.difficulty = undefined;
+			EnemyBase.clearRuntimePools();
+			Explode2.clearRuntimePool();
 			this.musicGridPulse?.destroy();
 			this.musicGridPulse = undefined;
 			this.levelMusic?.destroy();

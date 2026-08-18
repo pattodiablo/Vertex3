@@ -192,14 +192,23 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 	}
 
 	static warmOpenPortalPool(scene: Phaser.Scene, count = 30) {
+		EnemyBase.clearRuntimePools();
 		for (let i = EnemyBase.openPortalPool.length; i < count; i++) {
 			const portal = new OpenPortal(scene, 0, 0);
 			scene.add.existing(portal);
-			portal.stop();
+			portal.anims?.stop();
 			portal.setActive(false);
 			portal.setVisible(false);
 			EnemyBase.openPortalPool.push(portal);
 		}
+	}
+
+	static clearRuntimePools() {
+		for (const portal of EnemyBase.openPortalPool) {
+			portal.removeAllListeners();
+			portal.destroy();
+		}
+		EnemyBase.openPortalPool.length = 0;
 	}
 	private getMainShip(): MainShip | null { const scene = this.scene as (Phaser.Scene & { mainShip?: MainShip }) | undefined; if (!scene || !scene.sys?.isActive()) return null; return scene.mainShip ?? null; }
 	private static makeBodyKey(bodyId: b2BodyId) { return `${bodyId.world0}:${bodyId.index1}:${bodyId.revision}`; }
