@@ -6,7 +6,7 @@ import * as Phaser from "phaser";
 import type MainShip from "./MainShip";
 import Bullet from "./Bullet";
 import energyParticle from "./energyParticle";
-import AppearEffect from "./AppearEffect";
+import OpenPortal from "./OpenPortal";
 import Explode2 from "./Explode2";
 import { DYNAMIC } from "../../box2d/PhaserBox2D";
 import { RotFromRad } from "../../box2d/PhaserBox2D";
@@ -103,7 +103,11 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 			b2.b2Body_SetTransform(this.bodyId, pxmVec2(this.spawnX, -this.spawnY), RotFromRad(this.spawnRotation));
 		}
 		this.disableBody();
-		AppearEffect.spawn(this.scene, this.spawnX, this.spawnY, () => {
+		const portal = new OpenPortal(this.scene, this.spawnX, this.spawnY);
+		this.scene.add.existing(portal);
+		portal.setScale(0.5);
+		portal.play("openPortal");
+		portal.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
 			if (!this.active) return;
 			this.x = this.spawnX; this.y = this.spawnY; this.rotation = this.spawnRotation;
 			this.setVisible(true); this.setScale(0);
@@ -112,6 +116,9 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 				this.x = this.spawnX; this.y = this.spawnY; this.rotation = this.spawnRotation; this.setScale(this.finalScaleX, this.finalScaleY);
 				this.syncBodyTransform(); this.enableBody(); this.attachToWorldSprites(); this.isAppeared = true; this.isAppearing = false; onComplete?.();
 			}});
+			if (portal.active) {
+				portal.destroy();
+			}
 		});
 	}
 

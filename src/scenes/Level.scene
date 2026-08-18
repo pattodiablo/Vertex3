@@ -359,39 +359,6 @@
             "shadow.offsetX": 3,
             "shadow.offsetY": 3,
             "shadow.stroke": true
-        },
-        {
-            "prefabId": "9e6a8dd3-6102-4241-b058-d4045f2b5823",
-            "id": "20d3680c-7018-4d5b-8503-d2af76ca67ea",
-            "unlock": [
-                "x",
-                "y"
-            ],
-            "label": "openPortal20",
-            "x": 770,
-            "y": 465
-        },
-        {
-            "prefabId": "b6694619-ff7e-4806-91b5-8e42b5dc966f",
-            "id": "10aea174-4015-4472-b189-09970becd131",
-            "unlock": [
-                "x",
-                "y"
-            ],
-            "label": "appearEffect",
-            "x": 900,
-            "y": 404
-        },
-        {
-            "prefabId": "9e666c38-429d-48e6-88b6-32df37bddf49",
-            "id": "1242b7a8-f1ec-425f-b74d-f09b4b6707dd",
-            "unlock": [
-                "x",
-                "y"
-            ],
-            "label": "appearAnimPrefab",
-            "x": 759,
-            "y": 315
         }
     ],
     "plainObjects": [],
