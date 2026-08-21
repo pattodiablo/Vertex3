@@ -359,6 +359,64 @@
             "shadow.offsetX": 3,
             "shadow.offsetY": 3,
             "shadow.stroke": true
+        },
+        {
+            "type": "Container",
+            "id": "ddd5e386-017c-4dc9-a195-24ed9495c1f8",
+            "label": "FinalButtons",
+            "scope": "CLASS",
+            "x": 640,
+            "y": 513,
+            "list": [
+                {
+                    "prefabId": "17369517-9b83-4282-924d-779411449fde",
+                    "id": "b857e603-c212-4761-aa95-c5c9ec4b43e8",
+                    "unlock": [
+                        "x",
+                        "y",
+                        "BtnText"
+                    ],
+                    "label": "RetryBtn",
+                    "BtnText": "RETRY",
+                    "x": 0,
+                    "y": 0
+                },
+                {
+                    "prefabId": "17369517-9b83-4282-924d-779411449fde",
+                    "id": "b4ae1bcc-ad77-485a-a67e-9834bb5475b8",
+                    "unlock": [
+                        "x",
+                        "y",
+                        "BtnText"
+                    ],
+                    "label": "HangarBtn",
+                    "BtnText": "HANGAR",
+                    "x": 0,
+                    "y": 63
+                }
+            ]
+        },
+        {
+            "prefabId": "3fd3dc39-9cd8-486e-842f-c9b9750599e3",
+            "id": "f01fa80f-e21d-42d7-bae9-b59310eacc21",
+            "unlock": [
+                "x",
+                "y"
+            ],
+            "label": "megaBomb",
+            "x": 324,
+            "y": 589
+        },
+        {
+            "prefabId": "22f40c82-5b12-4834-afc2-d6dae70b2c4f",
+            "id": "52eb179f-1751-464b-8e05-a04741462c8b",
+            "unlock": [
+                "x",
+                "y"
+            ],
+            "label": "mine",
+            "x": 425,
+            "y": 657
         }
     ],
     "plainObjects": [],

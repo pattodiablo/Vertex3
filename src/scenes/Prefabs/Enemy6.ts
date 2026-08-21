@@ -50,7 +50,7 @@ export default class Enemy6 extends EnemyBase {
 		/* END-USER-CTR-CODE */
 	}
 
-	public EnemyLife: number = 1;
+	public EnemyLife: number = 2;
 
 	/* START-USER-CODE */
 

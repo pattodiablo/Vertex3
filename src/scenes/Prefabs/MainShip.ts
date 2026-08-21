@@ -150,6 +150,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 	private isAppeared = false;
 	private isAppearing = false;
 	private isDead = false;
+	private isVictoryEscaping = false;
 	private readonly appearScaleDuration = 450;
 	private spawnX = 0;
 	private spawnY = 0;
@@ -166,6 +167,10 @@ export default class MainShip extends Phaser.GameObjects.Image {
 
 	static getCurrentShip() {
 		return MainShip.currentShip;
+	}
+
+	static resetCurrentShip() {
+		MainShip.currentShip = undefined;
 	}
 
 	get energyCollected() {
@@ -247,7 +252,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 
 	preUpdate(_time: number, delta: number) {
 		// Pin pose during appear — UpdateWorldSprites can shove disabled bodies to (0,0)
-		if (this.isDead) {
+		if (this.isDead || this.isVictoryEscaping) {
 			return;
 		}
 
@@ -358,6 +363,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 
 	/** Scene event: Level listens and schedules respawn (other modes later). */
 	static readonly DIED_EVENT = "main-ship-died";
+	static readonly VICTORY_ESCAPE_COMPLETE_EVENT = "main-ship-victory-escape-complete";
 
 	/**
 	 * Called when an Enemy1 touches the ship:
@@ -418,6 +424,52 @@ export default class MainShip extends Phaser.GameObjects.Image {
 		if (this.active) {
 			this.destroy();
 		}
+	}
+
+	beginVictoryEscape() {
+		if (this.isDead || !this.isAppeared || !this.active || !this.scene) {
+			return;
+		}
+
+		this.isVictoryEscaping = true;
+		this.isAppearing = false;
+		this.isAppeared = false;
+		this.stopExhaustTrail();
+		this.teardownTouchJoystick();
+
+		const scene = this.scene;
+		const b2 = MainShip.box2d;
+		const bodyId = this.bodyId;
+
+		try {
+			b2.b2Body_SetLinearVelocity(bodyId, new b2Vec2(0, 0));
+			b2.b2Body_SetAngularVelocity(bodyId, 0);
+			b2.b2Body_Disable(bodyId);
+			RemoveSpriteFromWorld((scene as any).worldId, this, false);
+		} catch {
+			// ignore if body is already gone
+		}
+
+		this.scene.tweens.killTweensOf(this);
+		this.setVisible(true);
+		this.scene.tweens.add({
+			targets: this,
+			x: this.scene.scale.width + this.width,
+			duration: 1800,
+			ease: "Sine.easeInOut",
+			onUpdate: () => {
+				this.rotation = 0;
+			},
+			onComplete: () => {
+				this.isVictoryEscaping = false;
+				this.setVisible(false);
+				this.setActive(false);
+				if (scene.sys?.isActive()) {
+					console.log("MainShip: Victory escape complete, emitting event");
+					scene.events.emit(MainShip.VICTORY_ESCAPE_COMPLETE_EVENT);
+				}
+			},
+		});
 	}
 
 	// ---------- Movement ----------

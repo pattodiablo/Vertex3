@@ -46,11 +46,12 @@ export default class Enemy8 extends EnemyBase {
 				// ignore if the sprite is already registered with the world
 			}
 		}
+			this.setScale(1);
 		this.finalizeSpawn();
 		/* END-USER-CTR-CODE */
 	}
 
-	public EnemyLife: number = 1;
+	public EnemyLife: number = 8;
 
 	/* START-USER-CODE */
 

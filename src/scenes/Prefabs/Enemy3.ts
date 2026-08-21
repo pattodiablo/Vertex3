@@ -47,11 +47,11 @@ export default class Enemy3 extends EnemyBase {
 			}
 		}
 		this.finalizeSpawn();
-		this.setAngle(-90);
+		this.setAngle(90);
 		this.setScale(1);
 		const sceneHeight = this.scene.scale.height || 720;
 		this.verticalDirection = this.y >= sceneHeight * 0.5 ? -1 : 1;
-		this.setScale(1, this.verticalDirection < 0 ? -1 : 1);
+		this.setAngle(this.verticalDirection < 0 ? -90 : 90);
 		/* END-USER-CTR-CODE */
 	}
 
@@ -65,18 +65,17 @@ export default class Enemy3 extends EnemyBase {
 		const sceneHeight = this.scene.scale.height || 720;
 		const speed = this.getMoveSpeed();
 		this.y += this.verticalDirection * speed * (delta / 1000);
-		this.setAngle(-90);
-		this.setScale(1, this.verticalDirection < 0 ? -1 : 1);
+		this.setAngle(this.verticalDirection < 0 ? -90 : 90);
 
 		if (this.verticalDirection > 0 && this.y > sceneHeight + this.travelPadding) {
 			this.verticalDirection = -1;
-			this.setScale(1, -1);
+			this.setAngle(-90);
 			this.y = sceneHeight + this.travelPadding;
 		}
 
 		if (this.verticalDirection < 0 && this.y < -this.travelPadding) {
 			this.verticalDirection = 1;
-			this.setScale(1, 1);
+			this.setAngle(90);
 			this.y = -this.travelPadding;
 		}
 	}

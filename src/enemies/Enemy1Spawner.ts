@@ -147,7 +147,14 @@ export default class EnemySpawner {
 		}
 
 		const enemy = new EnemyClass(this.scene, x, y);
-		enemy.setMoveSpeed(EnemyClass === Enemy4 ? Math.max(moveSpeed + 35, 130) : moveSpeed);
+		const adjustedMoveSpeed = EnemyClass === Enemy6
+			? Math.max(moveSpeed + 60, 130)
+			: EnemyClass === Enemy4
+				? Math.max(moveSpeed + 35, 130)
+				: EnemyClass === Enemy8
+					? Math.max(Math.floor(moveSpeed * 0.6), 45)
+				: moveSpeed;
+		enemy.setMoveSpeed(adjustedMoveSpeed);
 		enemy.setDepth(8);
 		this.scene.add.existing(enemy);
 	}

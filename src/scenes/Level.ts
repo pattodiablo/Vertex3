@@ -16,6 +16,9 @@ import { pxm } from "../box2d/PhaserBox2D";
 import { b2MakeBox } from "../box2d/PhaserBox2D";
 import { RotFromRad } from "../box2d/PhaserBox2D";
 import MainShip from "./Prefabs/MainShip";
+import BtnPrefab from "./Prefabs/BtnPrefab";
+import Bomb from "./Prefabs/Bomb";
+import Mine from "./Prefabs/Mine";
 import { WorldStep } from "../box2d/PhaserBox2D";
 import { UpdateWorldSprites } from "../box2d/PhaserBox2D";
 import { b2World_Draw } from "../box2d/PhaserBox2D";
@@ -213,9 +216,34 @@ export default class Level extends Phaser.Scene {
 		bestText.text = "000000000";
 		bestText.setStyle({ "color": "#6CEE57", "fontFamily": "Orbitron", "fontSize": "22pt", "shadow.offsetX": 3, "shadow.offsetY": 3, "shadow.stroke": true });
 
+		// FinalButtons
+		const finalButtons = this.add.container(640, 513);
+
+		// RetryBtn
+		const retryBtn = new BtnPrefab(this, 0, 0);
+		finalButtons.add(retryBtn);
+
+		// HangarBtn
+		const hangarBtn = new BtnPrefab(this, 0, 63);
+		finalButtons.add(hangarBtn);
+
+		// megaBomb
+		const megaBomb = new Bomb(this, 324, 589);
+		this.add.existing(megaBomb);
+
+		// mine
+		const mine = new Mine(this, 425, 657);
+		this.add.existing(mine);
+
 		// Box2D debug graphics
 		this.debugGraphics = this.add.graphics();
 		this.debugDraw = new PhaserDebugDraw(this.debugGraphics, this.game.scale.width, this.game.scale.height, 40);
+
+		// retryBtn (prefab fields)
+		retryBtn.BtnText = "RETRY";
+
+		// hangarBtn (prefab fields)
+		hangarBtn.BtnText = "HANGAR";
 
 		this.gameBg = gameBg;
 		this.body_2 = body_2;
@@ -240,6 +268,7 @@ export default class Level extends Phaser.Scene {
 		this.lifeHeart3 = lifeHeart3;
 		this.bestTitle = bestTitle;
 		this.bestText = bestText;
+		this.finalButtons = finalButtons;
 
 		this.events.emit("scene-awake");
 	}
@@ -275,6 +304,7 @@ export default class Level extends Phaser.Scene {
 	public lifeHeart3!: Phaser.GameObjects.Image;
 	public bestTitle!: Phaser.GameObjects.Text;
 	public bestText!: Phaser.GameObjects.Text;
+	private finalButtons!: Phaser.GameObjects.Container;
 	public worldId!: b2WorldId;
 	public debugGraphics!: Phaser.GameObjects.Graphics;
 
@@ -319,7 +349,7 @@ export default class Level extends Phaser.Scene {
 
 	/** Temporary mode: respawn ship after death (other modalities later). */
 	private static readonly BEST_SCORE_STORAGE_KEY = "vertex3-best-score";
-	private readonly gameplayDurationMs = 180_000;
+	private readonly gameplayDurationMs = 150_000;
 	private readonly finalCountdownWarningMs = 10_000;
 	private readonly mainShipRespawnDelayMs = 3000;
 	private readonly mainShipSpawnX = 640;
@@ -339,14 +369,26 @@ export default class Level extends Phaser.Scene {
 	private remainingLives = this.maxLives;
 	private lifeHearts: Phaser.GameObjects.Image[] = [];
 	private gameOverText?: Phaser.GameObjects.Text;
+	private victoryText?: Phaser.GameObjects.Text;
+	private victoryScoreLabelText?: Phaser.GameObjects.Text;
+	private victoryScoreValueText?: Phaser.GameObjects.Text;
+	private victoryButtonRetry?: BtnPrefab;
+	private victoryButtonHangar?: BtnPrefab;
+	private victoryButtons: BtnPrefab[] = [];
+	private victorySelectedIndex = 0;
+	private victoryCursorKeys?: Phaser.Types.Input.Keyboard.CursorKeys;
+	private victoryEnterKey?: Phaser.Input.Keyboard.Key;
 	private pauseText?: Phaser.GameObjects.Text;
 	private isGameOver = false;
+	private isVictory = false;
+	private victoryMessageShown = false;
 	private canRestartFromGameOver = false;
 	private isRestartingFromGameOver = false;
 	private wasBlurPaused = false;
 	private wasGamepadRestartPressed = false;
 	private restartEnterKey?: Phaser.Input.Keyboard.Key;
 	private gameOverRestartDelayTimer?: Phaser.Time.TimerEvent;
+	private visibilityPauseTimer?: Phaser.Time.TimerEvent;
 
 	create() {
 
@@ -375,6 +417,7 @@ export default class Level extends Phaser.Scene {
 		this.setupLivesHud();
 		this.setupPauseText();
 		this.setupGameOverText();
+		this.setupVictoryText();
 		this.loadBestScore();
 		this.setupLevelMusic();
 		// Shine + music pulse (horizontal band driven by audio)
@@ -387,11 +430,15 @@ export default class Level extends Phaser.Scene {
 		this.setupScoreTracking();
 		this.setupGameOverRestartControls();
 		this.setupBlurPauseHandling();
+		this.victoryCursorKeys = this.input.keyboard?.createCursorKeys();
+		this.victoryEnterKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+		this.events.on(MainShipUser.VICTORY_ESCAPE_COMPLETE_EVENT, this.onVictoryEscapeComplete, this);
 		this.events.on(Phaser.Scenes.Events.POST_UPDATE, this.onPostUpdateEffects, this);
 		this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
 			this.events.off(Phaser.Scenes.Events.POST_UPDATE, this.onPostUpdateEffects, this);
 			this.events.off(MainShipUser.DIED_EVENT, this.onMainShipDied, this);
 			this.events.off(MainShipUser.ENERGY_CHANGED_EVENT, this.onMainShipEnergyChanged, this);
+			this.events.off(MainShipUser.VICTORY_ESCAPE_COMPLETE_EVENT, this.onVictoryEscapeComplete, this);
 			this.events.off(Enemy1.DIED_EVENT, this.onEnemy1Died, this);
 			window.removeEventListener("blur", this.handleWindowBlur);
 			window.removeEventListener("focus", this.handleWindowFocus);
@@ -400,6 +447,8 @@ export default class Level extends Phaser.Scene {
 			this.restartEnterKey?.off(Phaser.Input.Keyboard.Events.DOWN, this.handleGameOverEnterDown, this);
 			this.restartEnterKey?.destroy();
 			this.restartEnterKey = undefined;
+			this.victoryEnterKey?.destroy();
+			this.victoryEnterKey = undefined;
 			this.gameOverRestartDelayTimer?.remove(false);
 			this.gameOverRestartDelayTimer = undefined;
 			this.mainShipRespawnTimer?.remove(false);
@@ -410,6 +459,12 @@ export default class Level extends Phaser.Scene {
 			this.difficulty = undefined;
 			EnemyBase.clearRuntimePools();
 			Explode2.clearRuntimePool();
+			this.victoryText?.destroy();
+			this.victoryText = undefined;
+			this.victoryScoreLabelText?.destroy();
+			this.victoryScoreLabelText = undefined;
+			this.victoryScoreValueText?.destroy();
+			this.victoryScoreValueText = undefined;
 			this.musicGridPulse?.destroy();
 			this.musicGridPulse = undefined;
 			this.levelMusic?.destroy();
@@ -435,6 +490,8 @@ export default class Level extends Phaser.Scene {
 		this.scorePulseTween?.stop();
 		this.scorePulseTween = undefined;
 		this.remainingLives = this.maxLives;
+		this.visibilityPauseTimer?.remove(false);
+		this.visibilityPauseTimer = undefined;
 		this.refreshBestScoreText();
 		this.refreshTimeText();
 	}
@@ -503,8 +560,79 @@ export default class Level extends Phaser.Scene {
 			},
 		});
 		this.gameOverText.setOrigin(0.5, 0.5);
-		this.gameOverText.setDepth(2000);
+		this.gameOverText.setScrollFactor(0);
+		this.gameOverText.setDepth(10000);
 		this.gameOverText.setVisible(false);
+	}
+
+	private setupVictoryText() {
+		this.victoryText?.destroy();
+		this.victoryText = this.add.text(this.scale.width * 0.5, this.scale.height * 0.5 - 40, "WELL DONE", {
+			color: "#6CEE57",
+			fontFamily: "Orbitron",
+			fontSize: "54pt",
+			shadow: {
+				offsetX: 4,
+				offsetY: 4,
+				stroke: true,
+			},
+		});
+		this.victoryText.setOrigin(0.5, 0.5);
+		this.victoryText.setScrollFactor(0);
+		this.victoryText.setDepth(10002);
+		this.victoryText.setVisible(false);
+
+		this.victoryScoreLabelText?.destroy();
+		this.victoryScoreLabelText = this.add.text(this.scale.width * 0.5, this.scale.height * 0.5 + 30, "score", {
+			color: "#6CEE57",
+			fontFamily: "Orbitron",
+			fontSize: "18pt",
+			shadow: {
+				offsetX: 3,
+				offsetY: 3,
+				stroke: true,
+			},
+		});
+		this.victoryScoreLabelText.setOrigin(0.5, 0.5);
+		this.victoryScoreLabelText.setScrollFactor(0);
+		this.victoryScoreLabelText.setDepth(10003);
+		this.victoryScoreLabelText.setVisible(false);
+
+		this.victoryScoreValueText?.destroy();
+		this.victoryScoreValueText = this.add.text(this.scale.width * 0.5, this.scale.height * 0.5 + 74, "000000000", {
+			color: "#6CEE57",
+			fontFamily: "Orbitron",
+			fontSize: "30pt",
+			shadow: {
+				offsetX: 3,
+				offsetY: 3,
+				stroke: true,
+			},
+		});
+		this.victoryScoreValueText.setOrigin(0.5, 0.5);
+		this.victoryScoreValueText.setScrollFactor(0);
+		this.victoryScoreValueText.setDepth(10003);
+		this.victoryScoreValueText.setVisible(false);
+
+		this.finalButtons.setVisible(false);
+
+		this.victoryButtonRetry?.destroy();
+		this.victoryButtonRetry = new BtnPrefab(this, this.scale.width * 0.5, this.scale.height * 0.5 + 126);
+		this.victoryButtonRetry.setLabel("Retry?");
+		this.victoryButtonRetry.setScrollFactor(0);
+		this.victoryButtonRetry.setDepth(10004);
+		this.victoryButtonRetry.setVisible(false);
+		this.victoryButtonRetry.on("clicked", () => this.activateVictoryButton(0));
+
+		this.victoryButtonHangar?.destroy();
+		this.victoryButtonHangar = new BtnPrefab(this, this.scale.width * 0.5, this.scale.height * 0.5 + 180);
+		this.victoryButtonHangar.setLabel("Hangar");
+		this.victoryButtonHangar.setScrollFactor(0);
+		this.victoryButtonHangar.setDepth(10004);
+		this.victoryButtonHangar.setVisible(false);
+		this.victoryButtonHangar.on("clicked", () => this.activateVictoryButton(1));
+
+		this.victoryButtons = [this.victoryButtonRetry, this.victoryButtonHangar];
 	}
 
 	private setupPauseText() {
@@ -534,7 +662,13 @@ export default class Level extends Phaser.Scene {
 		document.addEventListener("visibilitychange", this.handleVisibilityChange);
 
 		if (document.hidden) {
-			this.pauseFromBlur();
+			this.visibilityPauseTimer?.remove(false);
+			this.visibilityPauseTimer = this.time.delayedCall(350, () => {
+				this.visibilityPauseTimer = undefined;
+				if (document.hidden) {
+					this.pauseFromBlur();
+				}
+			});
 		}
 	}
 
@@ -548,7 +682,13 @@ export default class Level extends Phaser.Scene {
 
 	private readonly handleVisibilityChange = () => {
 		if (document.hidden) {
-			this.pauseFromBlur();
+			this.visibilityPauseTimer?.remove(false);
+			this.visibilityPauseTimer = this.time.delayedCall(350, () => {
+				this.visibilityPauseTimer = undefined;
+				if (document.hidden) {
+					this.pauseFromBlur();
+				}
+			});
 			return;
 		}
 
@@ -567,6 +707,8 @@ export default class Level extends Phaser.Scene {
 	}
 
 	private resumeFromBlur() {
+		this.visibilityPauseTimer?.remove(false);
+		this.visibilityPauseTimer = undefined;
 		if (!this.wasBlurPaused) {
 			return;
 		}
@@ -606,9 +748,36 @@ export default class Level extends Phaser.Scene {
 		this.isRestartingFromGameOver = true;
 		this.time.delayedCall(0, () => {
 			if (this.sys.isActive()) {
-				this.scene.restart();
+				this.restartLevel();
 			}
 		});
+	}
+
+	private restartLevel() {
+		if (!this.sys.isActive()) {
+			return;
+		}
+
+		this.isGameOver = false;
+		this.isVictory = false;
+		this.victoryMessageShown = false;
+		this.canRestartFromGameOver = false;
+		this.isRestartingFromGameOver = false;
+		this.timeExpired = false;
+		this.mainShip?.destroy();
+		(this as { mainShip?: MainShip }).mainShip = undefined;
+		MainShipUser.resetCurrentShip();
+		this.mainShipRespawnTimer?.remove(false);
+		this.mainShipRespawnTimer = undefined;
+		this.gameOverRestartDelayTimer?.remove(false);
+		this.gameOverRestartDelayTimer = undefined;
+		this.scoreCountTween?.stop();
+		this.scoreCountTween = undefined;
+		this.scorePulseTween?.stop();
+		this.scorePulseTween = undefined;
+		this.timeWarningTween?.stop();
+		this.timeWarningTween = undefined;
+		this.scene.restart();
 	}
 
 	private pollGamepadGameOverRestart() {
@@ -654,6 +823,12 @@ export default class Level extends Phaser.Scene {
 		this.difficulty?.onShipDied();
 		this.refreshMultiplierText(1);
 
+		if (this.timeExpired || this.isVictory || this.isGameOver) {
+			this.mainShipRespawnTimer?.remove(false);
+			this.mainShipRespawnTimer = undefined;
+			return;
+		}
+
 		// Clear stale reference (instance is destroyed)
 		(this as { mainShip?: MainShip }).mainShip = undefined;
 		this.remainingLives = Math.max(0, this.remainingLives - 1);
@@ -667,7 +842,7 @@ export default class Level extends Phaser.Scene {
 		this.mainShipRespawnTimer?.remove(false);
 		this.mainShipRespawnTimer = this.time.delayedCall(this.mainShipRespawnDelayMs, () => {
 			this.mainShipRespawnTimer = undefined;
-			if (!this.sys.isActive()) {
+			if (!this.sys.isActive() || this.timeExpired || this.isVictory || this.isGameOver) {
 				return;
 			}
 			// Already have a living ship (safety)
@@ -728,6 +903,129 @@ export default class Level extends Phaser.Scene {
 
 			this.canRestartFromGameOver = true;
 		});
+	}
+
+	private triggerVictory(ship: MainShipUser) {
+		if (this.isGameOver || this.isVictory) {
+			return;
+		}
+
+		this.isVictory = true;
+		this.stopTimeWarningEffect();
+		this.persistBestScore();
+		this.refreshTimeText();
+		this.canRestartFromGameOver = false;
+		this.gameOverRestartDelayTimer?.remove(false);
+		this.gameOverRestartDelayTimer = undefined;
+		this.mainShipRespawnTimer?.remove(false);
+		this.mainShipRespawnTimer = undefined;
+		this.enemySpawner?.destroy();
+		this.enemySpawner = undefined;
+		this.playLevelOutro();
+		ship.beginVictoryEscape();
+	}
+
+	private onVictoryEscapeComplete() {
+		this.showVictoryMessage();
+	}
+
+	private pollVictoryMenuInput() {
+		if (!this.isVictory || !this.victoryCursorKeys) {
+			return;
+		}
+
+		if (Phaser.Input.Keyboard.JustDown(this.victoryCursorKeys.up) || Phaser.Input.Keyboard.JustDown(this.victoryCursorKeys.left)) {
+			this.victorySelectedIndex = 0;
+			this.updateVictoryButtons();
+		}
+
+		if (Phaser.Input.Keyboard.JustDown(this.victoryCursorKeys.down) || Phaser.Input.Keyboard.JustDown(this.victoryCursorKeys.right)) {
+			this.victorySelectedIndex = 1;
+			this.updateVictoryButtons();
+		}
+
+		if (Phaser.Input.Keyboard.JustDown(this.victoryCursorKeys.space) || (this.victoryEnterKey ? Phaser.Input.Keyboard.JustDown(this.victoryEnterKey) : false)) {
+			this.activateVictoryButton(this.victorySelectedIndex);
+		}
+	}
+
+	private updateVictoryButtons() {
+		for (let index = 0; index < this.victoryButtons.length; index++) {
+			const button = this.victoryButtons[index];
+			const selected = index === this.victorySelectedIndex;
+			button.setSelected(selected);
+		}
+	}
+
+	private activateVictoryButton(index: number) {
+		if (!this.isVictory || !this.sys.isActive()) {
+			return;
+		}
+
+		this.victorySelectedIndex = Phaser.Math.Clamp(index, 0, this.victoryButtons.length - 1);
+		this.updateVictoryButtons();
+
+		if (this.victorySelectedIndex === 0) {
+			this.restartLevel();
+			return;
+		}
+
+		this.scene.start("Preload");
+	}
+
+	private showVictoryMessage() {
+		if (this.victoryMessageShown || !this.victoryText || !this.victoryScoreLabelText || !this.victoryScoreValueText || !this.sys.isActive()) {
+			return;
+		}
+
+		this.victoryMessageShown = true;
+		const formattedScore = Math.max(0, Math.floor(this.score)).toString().padStart(9, "0");
+		this.victoryText.setText("WELL DONE");
+		this.victoryScoreLabelText.setText("score");
+		this.victoryScoreValueText.setText(formattedScore);
+		this.victoryText.setAlpha(0);
+		this.victoryText.setScale(0.8);
+		this.victoryText.setVisible(true);
+		this.victoryScoreLabelText.setAlpha(0);
+		this.victoryScoreLabelText.setScale(0.8);
+		this.victoryScoreLabelText.setVisible(true);
+		this.victoryScoreValueText.setAlpha(0);
+		this.victoryScoreValueText.setScale(0.8);
+		this.victoryScoreValueText.setVisible(true);
+		this.finalButtons.setVisible(true);
+		this.victorySelectedIndex = 0;
+		for (let index = 0; index < this.victoryButtons.length; index++) {
+			const button = this.victoryButtons[index];
+			button.setAlpha(0);
+			button.setScale(0.8);
+			button.setVisible(true);
+			button.setSelected(index === this.victorySelectedIndex);
+		}
+		this.tweens.add({
+			targets: this.victoryText,
+			alpha: 1,
+			scaleX: 1,
+			scaleY: 1,
+			duration: 320,
+			ease: "Back.easeOut"
+		});
+		this.tweens.add({
+			targets: [this.victoryScoreLabelText, this.victoryScoreValueText],
+			alpha: 1,
+			scaleX: 1,
+			scaleY: 1,
+			duration: 320,
+			ease: "Back.easeOut"
+		});
+		this.tweens.add({
+			targets: this.victoryButtons,
+			alpha: 1,
+			scaleX: 1,
+			scaleY: 1,
+			duration: 320,
+			ease: "Back.easeOut"
+		});
+		this.updateVictoryButtons();
 	}
 
 	private onEnemy1Died(payload?: { baseScore?: number }) {
@@ -810,19 +1108,21 @@ export default class Level extends Phaser.Scene {
 		this.timeExpired = true;
 		this.remainingGameplayMs = 0;
 		this.refreshTimeText();
+		this.scoreCountTween?.stop();
+		this.scoreCountTween = undefined;
+		this.scorePulseTween?.stop();
+		this.scorePulseTween = undefined;
 		this.mainShipRespawnTimer?.remove(false);
 		this.mainShipRespawnTimer = undefined;
 
+		Enemy1.destroyAllLiving();
 		const ship = this.mainShip;
 		if (ship?.active && !ship.hasDied && ship.hasAppeared) {
-			this.remainingLives = 1;
-			this.refreshLivesHud();
-			ship.dieFromEnemyHit();
+			this.triggerVictory(ship);
 			return;
 		}
 
-		Enemy1.destroyAllLiving();
-		this.triggerGameOver();
+		this.showVictoryMessage();
 	}
 
 	private onMainShipEnergyChanged(payload?: { scoreMultiplier?: number }) {
@@ -830,7 +1130,7 @@ export default class Level extends Phaser.Scene {
 	}
 
 	private addScore(baseScore: number) {
-		if (!Number.isFinite(baseScore) || baseScore <= 0) {
+		if (!Number.isFinite(baseScore) || baseScore <= 0 || this.timeExpired || this.isGameOver || this.isVictory) {
 			return;
 		}
 
@@ -962,6 +1262,7 @@ export default class Level extends Phaser.Scene {
 	private onPostUpdateEffects(time: number, delta: number) {
 		const d = delta ?? this.game.loop.delta;
 		this.pollGamepadGameOverRestart();
+		this.pollVictoryMenuInput();
 		this.updateGameplayTimer(d);
 		this.difficulty?.update(d);
 		this.updateParallax();

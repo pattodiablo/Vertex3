@@ -49,7 +49,7 @@
             "name": "EnemyLife",
             "label": "EnemyLife",
             "tooltip": "",
-            "defValue": 1,
+            "defValue": 2,
             "customDefinition": false,
             "editorOnly": false,
             "deprecated": false,

@@ -1,0 +1,66 @@
+{
+    "id": "17369517-9b83-4282-924d-779411449fde",
+    "sceneType": "PREFAB",
+    "settings": {
+        "exportClass": true,
+        "autoImport": true,
+        "generateAwakeHandler": true,
+        "preloadMethodName": "",
+        "preloadPackFiles": [],
+        "createMethodName": "",
+        "compilerOutputLanguage": "TYPE_SCRIPT",
+        "borderWidth": 1280,
+        "borderHeight": 720
+    },
+    "displayList": [
+        {
+            "type": "Container",
+            "id": "609348ce-2894-40aa-96f3-a63b4930b80a",
+            "label": "container_1",
+            "list": [
+                {
+                    "type": "Image",
+                    "id": "5c2a9fe1-963a-4267-8784-2e1db85b287d",
+                    "label": "btnTexture",
+                    "scope": "CLASS",
+                    "texture": {
+                        "key": "btnTexture"
+                    },
+                    "scaleY": 0.5
+                },
+                {
+                    "type": "Text",
+                    "id": "4d5dae20-a74a-48ad-a64c-06c8077c2ee2",
+                    "label": "ButtonText",
+                    "scope": "CLASS",
+                    "originX": 0.5,
+                    "originY": 0.5,
+                    "text": "button",
+                    "fontFamily": "Orbitron"
+                }
+            ]
+        }
+    ],
+    "plainObjects": [],
+    "meta": {
+        "app": "Phaser Editor - Scene Editor",
+        "url": "https://phaser.io/editor",
+        "contentType": "phasereditor2d.core.scene.SceneContentType",
+        "version": 5
+    },
+    "prefabProperties": [
+        {
+            "name": "BtnText",
+            "label": "BtnText",
+            "tooltip": "",
+            "defValue": "Abutton",
+            "customDefinition": false,
+            "editorOnly": false,
+            "deprecated": false,
+            "type": {
+                "id": "string",
+                "isArray": false
+            }
+        }
+    ]
+}

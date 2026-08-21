@@ -96,7 +96,7 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 		this.isDead = false;
 		this.hp = this.getEnemyLife();
 		this.setVisible(false);
-		this.setScale(0);
+		
 		if (!this.detachedFromWorldSprites) this.detachFromWorldSprites();
 		if (this.bodyId) {
 			b2.b2Body_SetLinearVelocity(this.bodyId, new b2Vec2(0, 0));

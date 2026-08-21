@@ -72,6 +72,11 @@
                 "key": "bgGalaxy"
             },
             {
+                "url": "assets/btnTexture.png",
+                "type": "image",
+                "key": "btnTexture"
+            },
+            {
                 "url": "assets/Bullet.png",
                 "type": "image",
                 "key": "Bullet"
@@ -233,11 +238,21 @@
                 "key": "mainShip"
             },
             {
+                "url": "assets/megaBomb.png",
+                "type": "image",
+                "key": "megaBomb"
+            },
+            {
                 "url": [
                     "assets/audio/mid.mp3"
                 ],
                 "type": "audio",
                 "key": "mid"
+            },
+            {
+                "url": "assets/mine.png",
+                "type": "image",
+                "key": "mine"
             },
             {
                 "url": "assets/OpenPortal.png",
