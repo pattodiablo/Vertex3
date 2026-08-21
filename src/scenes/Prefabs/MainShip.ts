@@ -59,6 +59,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 			bodyId: body,
 			radius: pxm(MainShip.BODY_RADIUS_PX),
 			offset: new b2Vec2(0, 0),
+			friction: 0,
 		});
 
 		/* START-USER-CTR-CODE */

@@ -10,9 +10,7 @@ import Explode2 from "./Explode2";
 /* END-USER-IMPORTS */
 
 export default class Mine extends Phaser.GameObjects.Image {
-	private static readonly SEARCH_RADIUS = 170;
-	private static readonly EXPLOSION_RADIUS = 160;
-	private static readonly EXPLOSION_DAMAGE = 6;
+	private static readonly EXPLOSION_DAMAGE = 10;
 	private isExploding = false;
 
 	constructor(scene: Phaser.Scene, x?: number, y?: number, texture?: string, frame?: number | string) {
@@ -59,7 +57,8 @@ export default class Mine extends Phaser.GameObjects.Image {
 
 		let nearestEnemy: EnemyBase | null = null;
 		let nearestDistanceSq = Number.POSITIVE_INFINITY;
-		const searchRadiusSq = Mine.SEARCH_RADIUS * Mine.SEARCH_RADIUS;
+		const searchRadius = this.getActivationRadius();
+		const searchRadiusSq = searchRadius * searchRadius;
 
 		EnemyBase.forEachLiving((enemy) => {
 			const dx = enemy.x - this.x;
@@ -90,7 +89,8 @@ export default class Mine extends Phaser.GameObjects.Image {
 		const explosion = Explode2.spawn(this.scene, this.x, this.y, undefined, 2.35);
 		explosion.setTint(0xff4d4d);
 
-		const explosionRadiusSq = Mine.EXPLOSION_RADIUS * Mine.EXPLOSION_RADIUS;
+		const explosionRadius = this.getDestructionRadius();
+		const explosionRadiusSq = explosionRadius * explosionRadius;
 		let hitCount = 0;
 		EnemyBase.forEachLiving((enemy) => {
 			const dx = enemy.x - this.x;
@@ -103,6 +103,16 @@ export default class Mine extends Phaser.GameObjects.Image {
 		console.log("Mine exploded", { x: this.x, y: this.y, hitCount, damage: Mine.EXPLOSION_DAMAGE });
 
 		this.destroy();
+	}
+
+	private getActivationRadius() {
+		const mineSize = Math.max(this.displayWidth, this.displayHeight);
+		return mineSize * 0.5 + 20;
+	}
+
+	private getDestructionRadius() {
+		const mineSize = Math.max(this.displayWidth, this.displayHeight);
+		return mineSize * 0.5 + 40;
 	}
 
 	/* END-USER-CODE */

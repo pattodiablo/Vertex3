@@ -78,7 +78,7 @@ export default class Level extends Phaser.Scene {
 		// pisoShape
 		const pisoShape = b2CreatePolygonShape(body_2, { 
 			...b2DefaultShapeDef(), 
-			friction: 0.8
+			friction: 0
 		}, b2MakeBox(pxm(981.3605825411378), pxm(64)));
 
 		// pared2
@@ -101,7 +101,7 @@ export default class Level extends Phaser.Scene {
 		// pisoShape_1
 		const pisoShape_1 = b2CreatePolygonShape(body_3, { 
 			...b2DefaultShapeDef(), 
-			friction: 0.8
+			friction: 0
 		}, b2MakeBox(pxm(981.3605825411378), pxm(64)));
 
 		// pared3
@@ -122,7 +122,7 @@ export default class Level extends Phaser.Scene {
 		// pisoShape_2
 		const pisoShape_2 = b2CreatePolygonShape(body_4, { 
 			...b2DefaultShapeDef(), 
-			friction: 0.8
+			friction: 0
 		}, b2MakeBox(pxm(981.3605825411378), pxm(64)));
 
 		// pared4
@@ -145,7 +145,7 @@ export default class Level extends Phaser.Scene {
 		// pisoShape_3
 		const pisoShape_3 = b2CreatePolygonShape(body_5, { 
 			...b2DefaultShapeDef(), 
-			friction: 0.8
+			friction: 0
 		}, b2MakeBox(pxm(981.3605825411378), pxm(64)));
 
 		// grid
@@ -339,7 +339,7 @@ export default class Level extends Phaser.Scene {
 
 	/** Temporary mode: respawn ship after death (other modalities later). */
 	private static readonly BEST_SCORE_STORAGE_KEY = "vertex3-best-score";
-	private readonly gameplayDurationMs = 10_000;
+	private readonly gameplayDurationMs = 150_000;
 	private readonly finalCountdownWarningMs = 10_000;
 	private readonly mainShipRespawnDelayMs = 3000;
 	private readonly mainShipSpawnX = 640;
