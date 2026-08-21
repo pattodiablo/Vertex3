@@ -298,6 +298,19 @@
                 "url": "assets/particleShip.png",
                 "type": "image",
                 "key": "particleShip"
+            },
+            {
+                "url": "assets/shipAppear.png",
+                "frameConfig": {
+                    "frameWidth": 128,
+                    "frameHeight": 128,
+                    "startFrame": 0,
+                    "endFrame": -1,
+                    "spacing": 0,
+                    "margin": 0
+                },
+                "type": "spritesheet",
+                "key": "shipAppear"
             }
         ]
     },

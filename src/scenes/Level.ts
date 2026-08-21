@@ -27,6 +27,7 @@ import { b2BodyId } from "../box2d/PhaserBox2D";
 import * as PhaserBox2D from "../box2d/PhaserBox2D";
 import Bullet from "./Prefabs/Bullet";
 import Enemy1 from "./Prefabs/Enemy1";
+import Bomb from "./Prefabs/Bomb";
 import MainShipUser from "./Prefabs/MainShip";
 import LevelMusic from "../audio/LevelMusic";
 import MusicGridPulse from "../audio/MusicGridPulse";
@@ -358,6 +359,10 @@ export default class Level extends Phaser.Scene {
 	private readonly gamepadRestartButtonIndexes = [9, 8];
 	private remainingLives = this.maxLives;
 	private lifeHearts: Phaser.GameObjects.Image[] = [];
+	private readonly bombChargeMax = 50;
+	private readonly bombSpawnMargin = 72;
+	private bombCharge = 0;
+	private activeBomb?: Bomb;
 	private bombChargeBarBack?: Phaser.GameObjects.Rectangle;
 	private bombChargeBarFill?: Phaser.GameObjects.Rectangle;
 	private gameOverText?: Phaser.GameObjects.Text;
@@ -423,7 +428,7 @@ export default class Level extends Phaser.Scene {
 		this.setupEnemySpawner();
 		this.setupMainShipRespawn();
 		this.setupScoreTracking();
-		// this.setupBombTracking();
+		this.setupBombTracking();
 		this.setupGameOverRestartControls();
 		this.setupBlurPauseHandling();
 		this.setupVictoryPointerControls();
@@ -437,6 +442,7 @@ export default class Level extends Phaser.Scene {
 			this.events.off(MainShipUser.ENERGY_CHANGED_EVENT, this.onMainShipEnergyChanged, this);
 			this.events.off(MainShipUser.VICTORY_ESCAPE_COMPLETE_EVENT, this.onVictoryEscapeComplete, this);
 			this.events.off(Enemy1.DIED_EVENT, this.onEnemy1Died, this);
+			this.events.off(Bomb.COLLECTED_EVENT, this.onBombCollected, this);
 			if (this.victoryPointerHandler) {
 				this.input.off(Phaser.Input.Events.POINTER_DOWN, this.victoryPointerHandler, this);
 				this.victoryPointerHandler = undefined;
@@ -455,6 +461,8 @@ export default class Level extends Phaser.Scene {
 			this.gameOverRestartDelayTimer = undefined;
 			this.mainShipRespawnTimer?.remove(false);
 			this.mainShipRespawnTimer = undefined;
+			this.activeBomb?.destroy();
+			this.activeBomb = undefined;
 			this.stopTimeWarningEffect();
 			this.enemySpawner?.destroy();
 			this.enemySpawner = undefined;
@@ -494,8 +502,12 @@ export default class Level extends Phaser.Scene {
 		this.remainingLives = this.maxLives;
 		this.visibilityPauseTimer?.remove(false);
 		this.visibilityPauseTimer = undefined;
+		this.bombCharge = 0;
+		this.activeBomb?.destroy();
+		this.activeBomb = undefined;
 		this.refreshBestScoreText();
 		this.refreshTimeText();
+		this.refreshBombChargeBar();
 	}
 
 	private loadBestScore() {
@@ -543,11 +555,24 @@ export default class Level extends Phaser.Scene {
 		this.events.on(Enemy1.DIED_EVENT, this.onEnemy1Died, this);
 	}
 
+	private setupBombTracking() {
+		this.events.on(Bomb.COLLECTED_EVENT, this.onBombCollected, this);
+	}
+
 	private setupBombChargeHud() {
 		this.bombChargeBarBack?.destroy();
 		this.bombChargeBarFill?.destroy();
-		this.bombChargeBarBack = undefined;
-		this.bombChargeBarFill = undefined;
+
+		this.bombChargeBarBack = this.add.rectangle(0, 0, this.scale.width, 10, 0x0c1f12, 0.65);
+		this.bombChargeBarBack.setOrigin(0, 0);
+		this.bombChargeBarBack.setScrollFactor(0);
+		this.bombChargeBarBack.setDepth(10003);
+
+		this.bombChargeBarFill = this.add.rectangle(0, 0, this.scale.width, 10, 0x6cee57, 0.95);
+		this.bombChargeBarFill.setOrigin(0, 0);
+		this.bombChargeBarFill.setScrollFactor(0);
+		this.bombChargeBarFill.setDepth(10004);
+		this.refreshBombChargeBar();
 	}
 
 	private setupLivesHud() {
@@ -1166,6 +1191,65 @@ export default class Level extends Phaser.Scene {
 
 	private onMainShipEnergyChanged(payload?: { scoreMultiplier?: number }) {
 		this.refreshMultiplierText(payload?.scoreMultiplier ?? this.mainShip?.scoreMultiplier ?? 1);
+		this.updateBombCharge();
+	}
+
+	private updateBombCharge() {
+		if (this.isGameOver || this.isVictory || this.timeExpired) {
+			return;
+		}
+
+		const energyCollected = this.mainShip?.energyCollected ?? 0;
+		const chargeProgress = energyCollected % this.bombChargeMax;
+		const reachedMax = energyCollected > 0 && chargeProgress === 0;
+
+		if (reachedMax && !this.activeBomb) {
+			this.bombCharge = this.bombChargeMax;
+			this.refreshBombChargeBar();
+			this.spawnRandomBomb();
+			this.bombCharge = 0;
+			this.refreshBombChargeBar();
+			return;
+		}
+
+		this.bombCharge = reachedMax && this.activeBomb ? this.bombChargeMax : chargeProgress;
+		this.refreshBombChargeBar();
+	}
+
+	private refreshBombChargeBar() {
+		if (!this.bombChargeBarFill || !this.bombChargeBarBack) {
+			return;
+		}
+
+		const barWidth = this.scale.width;
+		const ratio = Phaser.Math.Clamp(this.bombCharge / this.bombChargeMax, 0, 1);
+		const fillWidth = Math.max(0, barWidth * ratio);
+		this.bombChargeBarBack.setDisplaySize(barWidth, 10);
+		this.bombChargeBarFill.setDisplaySize(fillWidth, 10);
+		this.bombChargeBarFill.setVisible(fillWidth > 0);
+	}
+
+	private spawnRandomBomb() {
+		if (this.activeBomb?.active) {
+			return;
+		}
+
+		const x = Phaser.Math.Between(this.bombSpawnMargin, this.scale.width - this.bombSpawnMargin);
+		const y = Phaser.Math.Between(this.bombSpawnMargin + 70, this.scale.height - this.bombSpawnMargin);
+		const bomb = new Bomb(this, x, y);
+		this.add.existing(bomb);
+		bomb.playSpawnWave();
+		bomb.setVisible(true);
+		bomb.setActive(true);
+		bomb.setAlpha(1);
+		bomb.setScale(0.7, 0.7);
+		this.activeBomb = bomb;
+	}
+
+	private onBombCollected() {
+		this.activeBomb = undefined;
+		this.bombCharge = 0;
+		this.refreshBombChargeBar();
 	}
 
 	private addScore(baseScore: number) {
