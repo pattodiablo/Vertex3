@@ -37,6 +37,7 @@ export default class BtnPrefab extends Phaser.GameObjects.Container {
 	private btnTexture: Phaser.GameObjects.Image;
 	private buttonText: Phaser.GameObjects.Text;
 	public BtnText: string = "Abutton";
+	public onPressed?: () => void;
 
 	/* START-USER-CODE */
 	private readonly hoverScale = 1.08;
@@ -95,12 +96,7 @@ export default class BtnPrefab extends Phaser.GameObjects.Container {
 	}
 
 	private handlePointerDown() {
-		if (this.BtnText.trim().toLowerCase() === "retry" || this.BtnText.trim().toLowerCase() === "retry?") {
-			this.scene.scene.restart();
-			return;
-		}
-
-		this.emit("clicked");
+		this.onPressed?.();
 	}
 
 	/* END-USER-CODE */

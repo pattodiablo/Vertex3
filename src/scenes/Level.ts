@@ -368,8 +368,10 @@ export default class Level extends Phaser.Scene {
 	private victoryButtonHangar?: BtnPrefab;
 	private victoryButtons: BtnPrefab[] = [];
 	private victorySelectedIndex = 0;
+	private victoryMenuReady = false;
 	private victoryCursorKeys?: Phaser.Types.Input.Keyboard.CursorKeys;
 	private victoryEnterKey?: Phaser.Input.Keyboard.Key;
+	private victoryPointerHandler?: (pointer: Phaser.Input.Pointer) => void;
 	private pauseText?: Phaser.GameObjects.Text;
 	private isGameOver = false;
 	private isVictory = false;
@@ -424,6 +426,7 @@ export default class Level extends Phaser.Scene {
 		// this.setupBombTracking();
 		this.setupGameOverRestartControls();
 		this.setupBlurPauseHandling();
+		this.setupVictoryPointerControls();
 		this.victoryCursorKeys = this.input.keyboard?.createCursorKeys();
 		this.victoryEnterKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
 		this.events.on(MainShipUser.VICTORY_ESCAPE_COMPLETE_EVENT, this.onVictoryEscapeComplete, this);
@@ -434,6 +437,10 @@ export default class Level extends Phaser.Scene {
 			this.events.off(MainShipUser.ENERGY_CHANGED_EVENT, this.onMainShipEnergyChanged, this);
 			this.events.off(MainShipUser.VICTORY_ESCAPE_COMPLETE_EVENT, this.onVictoryEscapeComplete, this);
 			this.events.off(Enemy1.DIED_EVENT, this.onEnemy1Died, this);
+			if (this.victoryPointerHandler) {
+				this.input.off(Phaser.Input.Events.POINTER_DOWN, this.victoryPointerHandler, this);
+				this.victoryPointerHandler = undefined;
+			}
 			// this.events.off(Bomb.COLLECTED_EVENT, this.onBombCollected, this);
 			window.removeEventListener("blur", this.handleWindowBlur);
 			window.removeEventListener("focus", this.handleWindowFocus);
@@ -624,7 +631,7 @@ export default class Level extends Phaser.Scene {
 		this.victoryButtonRetry.setScrollFactor(0);
 		this.victoryButtonRetry.setDepth(10004);
 		this.victoryButtonRetry.setVisible(false);
-		this.victoryButtonRetry.on("clicked", () => this.activateVictoryButton(0));
+		this.victoryButtonRetry.onPressed = () => this.activateVictoryButton(0);
 
 		this.victoryButtonHangar?.destroy();
 		this.victoryButtonHangar = new BtnPrefab(this, this.scale.width * 0.5, this.scale.height * 0.5 + 180);
@@ -632,7 +639,7 @@ export default class Level extends Phaser.Scene {
 		this.victoryButtonHangar.setScrollFactor(0);
 		this.victoryButtonHangar.setDepth(10004);
 		this.victoryButtonHangar.setVisible(false);
-		this.victoryButtonHangar.on("clicked", () => this.activateVictoryButton(1));
+		this.victoryButtonHangar.onPressed = () => this.activateVictoryButton(1);
 
 		this.victoryButtons = [this.victoryButtonRetry, this.victoryButtonHangar];
 	}
@@ -731,6 +738,29 @@ export default class Level extends Phaser.Scene {
 		this.restartEnterKey?.destroy();
 		this.restartEnterKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
 		this.restartEnterKey?.on(Phaser.Input.Keyboard.Events.DOWN, this.handleGameOverEnterDown, this);
+	}
+
+	private setupVictoryPointerControls() {
+		if (this.victoryPointerHandler) {
+			this.input.off(Phaser.Input.Events.POINTER_DOWN, this.victoryPointerHandler, this);
+		}
+
+		this.victoryPointerHandler = (pointer: Phaser.Input.Pointer) => {
+			if (!this.isVictory || !this.victoryMenuReady) {
+				return;
+			}
+
+			if (this.victoryButtonRetry && this.victoryButtonRetry.getBounds().contains(pointer.x, pointer.y)) {
+				this.activateVictoryButton(0);
+				return;
+			}
+
+			if (this.victoryButtonHangar && this.victoryButtonHangar.getBounds().contains(pointer.x, pointer.y)) {
+				this.activateVictoryButton(1);
+			}
+		};
+
+		this.input.on(Phaser.Input.Events.POINTER_DOWN, this.victoryPointerHandler, this);
 	}
 
 	private handleGameOverPointerUp() {
@@ -932,7 +962,7 @@ export default class Level extends Phaser.Scene {
 	}
 
 	private pollVictoryMenuInput() {
-		if (!this.isVictory || !this.victoryCursorKeys) {
+		if (!this.isVictory || !this.victoryCursorKeys || !this.victoryMenuReady) {
 			return;
 		}
 
@@ -960,6 +990,7 @@ export default class Level extends Phaser.Scene {
 	}
 
 	private activateVictoryButton(index: number) {
+		console.log(`Victory button ${index} activated`);
 		if (!this.isVictory || !this.sys.isActive()) {
 			return;
 		}
@@ -996,6 +1027,7 @@ export default class Level extends Phaser.Scene {
 		this.victoryScoreValueText.setVisible(true);
 		this.finalButtons.setVisible(true);
 		this.victorySelectedIndex = 0;
+		this.victoryMenuReady = false;
 		for (let index = 0; index < this.victoryButtons.length; index++) {
 			const button = this.victoryButtons[index];
 			button.setAlpha(0);
@@ -1028,6 +1060,11 @@ export default class Level extends Phaser.Scene {
 			ease: "Back.easeOut"
 		});
 		this.updateVictoryButtons();
+		this.time.delayedCall(180, () => {
+			if (this.sys.isActive() && this.isVictory) {
+				this.victoryMenuReady = true;
+			}
+		});
 	}
 
 	private onEnemy1Died(payload?: { baseScore?: number }) {
