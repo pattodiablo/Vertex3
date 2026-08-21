@@ -151,6 +151,14 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 	static applyHitFromBody(bodyId: b2BodyId, damage = 1): boolean { const key = EnemyBase.makeBodyKey(bodyId); const enemy = EnemyBase.enemiesByBodyKey.get(key); if (!enemy || enemy.isDead) return false; enemy.takeDamage(damage); return true; }
 	static getNearestLiving(fromX: number, fromY: number): EnemyBase | null { let best: EnemyBase | null = null; let bestDistSq = Infinity; for (const enemy of EnemyBase.enemiesByBodyKey.values()) { if (!enemy.active || !enemy.visible || enemy.isDead || !enemy.hasAppeared) continue; const dx = enemy.x - fromX; const dy = enemy.y - fromY; const distSq = dx * dx + dy * dy; if (distSq < bestDistSq) { bestDistSq = distSq; best = enemy; } } return best; }
 	static destroyAllLiving() { const list = Array.from(EnemyBase.enemiesByBodyKey.values()); for (const enemy of list) if (!enemy.isDead) enemy.die(false); }
+	static forEachLiving(callback: (enemy: EnemyBase) => void) {
+		for (const enemy of EnemyBase.enemiesByBodyKey.values()) {
+			if (!enemy.active || !enemy.visible || enemy.isDead || !enemy.hasAppeared) {
+				continue;
+			}
+			callback(enemy);
+		}
+	}
 	preUpdate(_time: number, delta: number) { if (this.isDead || !this.active || !this.scene?.sys?.isActive()) return; if (!this.isAppeared) { if (this.isAppearing) { this.x = this.spawnX; this.y = this.spawnY; this.rotation = this.spawnRotation; } return; } if (!this.visible) return; this.updateMovement(delta); this.syncBodyTransform(); this.checkBulletHits(); this.checkShipCollision(); }
 	protected updateMovement(delta: number) { this.chaseMainShip(delta); }
 	protected checkBulletHits() { const r2 = this.hitRadius * this.hitRadius; Bullet.forEachActive((bullet) => { const dx = bullet.x - this.x; const dy = bullet.y - this.y; if (dx * dx + dy * dy > r2) return; if (Bullet.tryQueueDestroy(bullet.bodyId)) this.takeDamage(1); }); }

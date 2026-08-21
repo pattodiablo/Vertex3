@@ -14,6 +14,7 @@ import * as Phaser from "phaser";
 import AppearEffect from "./AppearEffect";
 import Enemy1 from "./Enemy1";
 import Bullet from "./Bullet";
+import Mine from "./Mine";
 import Explode2 from "./Explode2";
 import Explode4 from "./Explode4";
 import { DYNAMIC } from "../../box2d/PhaserBox2D";
@@ -28,6 +29,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 	private static currentShip?: MainShip;
 	private static readonly BASE_SCALE = 0.8;
 	private static readonly BODY_RADIUS_PX = 41 * MainShip.BASE_SCALE;
+	private static readonly MINE_DROP_INTERVAL_MS = 5000;
 	static readonly ENERGY_CHANGED_EVENT = "main-ship-energy-changed";
 	private static readonly controlsByScene = new WeakMap<Phaser.Scene, {
 		up: Phaser.Input.Keyboard.Key;
@@ -74,10 +76,12 @@ export default class MainShip extends Phaser.GameObjects.Image {
 			if (MainShip.currentShip === this) {
 				MainShip.currentShip = undefined;
 			}
+			this.stopMineDrops();
 			this.controls = undefined;
 			MainShip.controlsByScene.delete(this.scene);
 		});
 		this.scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+			this.stopMineDrops();
 			this.controls = undefined;
 			MainShip.controlsByScene.delete(this.scene);
 		});
@@ -164,6 +168,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 	private readonly exhaustDepth = 5;
 	private exhaustEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
 	private absorbedEnergy = 0;
+	private mineDropTimer?: Phaser.Time.TimerEvent;
 
 	static getCurrentShip() {
 		return MainShip.currentShip;
@@ -205,6 +210,31 @@ export default class MainShip extends Phaser.GameObjects.Image {
 			energyCollected: this.absorbedEnergy,
 			scoreMultiplier: this.scoreMultiplier,
 		});
+	}
+
+	private startMineDrops() {
+		this.stopMineDrops();
+		if (!this.scene?.sys?.isActive()) {
+			return;
+		}
+
+		this.mineDropTimer = this.scene.time.addEvent({
+			delay: MainShip.MINE_DROP_INTERVAL_MS,
+			loop: true,
+			callback: () => {
+				if (!this.active || !this.visible || this.isDead || !this.isAppeared || !this.scene?.sys?.isActive()) {
+					return;
+				}
+
+				const mine = new Mine(this.scene, this.x, this.y);
+				this.scene.add.existing(mine);
+			},
+		});
+	}
+
+	private stopMineDrops() {
+		this.mineDropTimer?.remove(false);
+		this.mineDropTimer = undefined;
 	}
 
 	/** Capture editor body + configure filters / dynamic physics. */
@@ -347,6 +377,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 					this.isAppeared = true;
 					this.isAppearing = false;
 					this.setupExhaustTrail();
+					this.startMineDrops();
 					onComplete?.();
 				},
 			});

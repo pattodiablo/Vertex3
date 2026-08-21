@@ -137,7 +137,6 @@
             ],
             "frameRate": 24,
             "skipMissedFrames": true,
-            "repeat": -1,
             "randomFrame": false
         },
         {

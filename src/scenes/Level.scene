@@ -395,28 +395,6 @@
                     "y": 63
                 }
             ]
-        },
-        {
-            "prefabId": "3fd3dc39-9cd8-486e-842f-c9b9750599e3",
-            "id": "f01fa80f-e21d-42d7-bae9-b59310eacc21",
-            "unlock": [
-                "x",
-                "y"
-            ],
-            "label": "megaBomb",
-            "x": 324,
-            "y": 589
-        },
-        {
-            "prefabId": "22f40c82-5b12-4834-afc2-d6dae70b2c4f",
-            "id": "52eb179f-1751-464b-8e05-a04741462c8b",
-            "unlock": [
-                "x",
-                "y"
-            ],
-            "label": "mine",
-            "x": 425,
-            "y": 657
         }
     ],
     "plainObjects": [],

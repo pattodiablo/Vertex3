@@ -30,19 +30,7 @@ export default class BtnPrefab extends Phaser.GameObjects.Container {
 		this.scene.events.once("scene-awake", () => this.awake());
 
 		/* START-USER-CTR-CODE */
-
-		// btnTextureHover
-		const btnTextureHover = scene.add.image(0, 0, "btnTexture");
-		btnTextureHover.scaleY = 0.5;
-		btnTextureHover.setAlpha(0);
-		this.add(btnTextureHover);
-
-
-		this.btnTextureHover = btnTextureHover;
-		this.BtnText = this.BtnText;
-		this.buttonText.setText(this.BtnText);
-
-		
+		// Write your code here.
 		/* END-USER-CTR-CODE */
 	}
 
@@ -51,7 +39,6 @@ export default class BtnPrefab extends Phaser.GameObjects.Container {
 	public BtnText: string = "Abutton";
 
 	/* START-USER-CODE */
-	private btnTextureHover: Phaser.GameObjects.Image;
 	private readonly hoverScale = 1.08;
 	private readonly hoverTint = 0xde2e31;
 
@@ -68,10 +55,8 @@ export default class BtnPrefab extends Phaser.GameObjects.Container {
 		this.buttonText.setColor(selected ? "#DE2E31" : "#FFFFFF");
 		if (selected) {
 			this.btnTexture.setTint(this.hoverTint);
-			this.btnTextureHover.setAlpha(0.35);
 		} else {
 			this.btnTexture.clearTint();
-			this.btnTextureHover.setAlpha(0);
 		}
 	}
 
@@ -86,29 +71,35 @@ export default class BtnPrefab extends Phaser.GameObjects.Container {
 
 		this.setScrollFactor(0);
 		this.setDepth(10004);
+		this.setSize(this.btnTexture.displayWidth, this.btnTexture.displayHeight);
 
 		this.handlePointerOut();
-		this.btnTexture.setInteractive({ useHandCursor: true });
+		this.btnTexture.setOrigin(0.5, 0.5);
+		this.btnTexture.setPosition(0, 0);
+		this.btnTexture.setInteractive();
 		this.btnTexture.on(Phaser.Input.Events.POINTER_OVER, this.handlePointerOver, this);
 		this.btnTexture.on(Phaser.Input.Events.POINTER_OUT, this.handlePointerOut, this);
-		this.btnTexture.on(Phaser.Input.Events.POINTER_UP, this.handlePointerUp, this);
+		this.btnTexture.on(Phaser.Input.Events.POINTER_DOWN, this.handlePointerDown, this);
 	}
 
 	private handlePointerOver() {
 		this.setScale(this.hoverScale);
 		this.btnTexture.setTint(this.hoverTint);
-		this.btnTextureHover.setAlpha(0.35);
 		this.buttonText.setColor("#DE2E31");
 	}
 
 	private handlePointerOut() {
 		this.setScale(1);
 		this.btnTexture.clearTint();
-		this.btnTextureHover.setAlpha(0);
 		this.buttonText.setColor("#FFFFFF");
 	}
 
-	private handlePointerUp() {
+	private handlePointerDown() {
+		if (this.BtnText.trim().toLowerCase() === "retry" || this.BtnText.trim().toLowerCase() === "retry?") {
+			this.scene.scene.restart();
+			return;
+		}
+
 		this.emit("clicked");
 	}
 

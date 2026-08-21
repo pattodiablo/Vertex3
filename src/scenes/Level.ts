@@ -17,8 +17,6 @@ import { b2MakeBox } from "../box2d/PhaserBox2D";
 import { RotFromRad } from "../box2d/PhaserBox2D";
 import MainShip from "./Prefabs/MainShip";
 import BtnPrefab from "./Prefabs/BtnPrefab";
-import Bomb from "./Prefabs/Bomb";
-import Mine from "./Prefabs/Mine";
 import { WorldStep } from "../box2d/PhaserBox2D";
 import { UpdateWorldSprites } from "../box2d/PhaserBox2D";
 import { b2World_Draw } from "../box2d/PhaserBox2D";
@@ -227,14 +225,6 @@ export default class Level extends Phaser.Scene {
 		const hangarBtn = new BtnPrefab(this, 0, 63);
 		finalButtons.add(hangarBtn);
 
-		// megaBomb
-		const megaBomb = new Bomb(this, 324, 589);
-		this.add.existing(megaBomb);
-
-		// mine
-		const mine = new Mine(this, 425, 657);
-		this.add.existing(mine);
-
 		// Box2D debug graphics
 		this.debugGraphics = this.add.graphics();
 		this.debugDraw = new PhaserDebugDraw(this.debugGraphics, this.game.scale.width, this.game.scale.height, 40);
@@ -349,7 +339,7 @@ export default class Level extends Phaser.Scene {
 
 	/** Temporary mode: respawn ship after death (other modalities later). */
 	private static readonly BEST_SCORE_STORAGE_KEY = "vertex3-best-score";
-	private readonly gameplayDurationMs = 150_000;
+	private readonly gameplayDurationMs = 10_000;
 	private readonly finalCountdownWarningMs = 10_000;
 	private readonly mainShipRespawnDelayMs = 3000;
 	private readonly mainShipSpawnX = 640;
@@ -368,6 +358,8 @@ export default class Level extends Phaser.Scene {
 	private readonly gamepadRestartButtonIndexes = [9, 8];
 	private remainingLives = this.maxLives;
 	private lifeHearts: Phaser.GameObjects.Image[] = [];
+	private bombChargeBarBack?: Phaser.GameObjects.Rectangle;
+	private bombChargeBarFill?: Phaser.GameObjects.Rectangle;
 	private gameOverText?: Phaser.GameObjects.Text;
 	private victoryText?: Phaser.GameObjects.Text;
 	private victoryScoreLabelText?: Phaser.GameObjects.Text;
@@ -415,6 +407,7 @@ export default class Level extends Phaser.Scene {
 
 		this.setupParallaxLayers();
 		this.setupLivesHud();
+		this.setupBombChargeHud();
 		this.setupPauseText();
 		this.setupGameOverText();
 		this.setupVictoryText();
@@ -428,6 +421,7 @@ export default class Level extends Phaser.Scene {
 		this.setupEnemySpawner();
 		this.setupMainShipRespawn();
 		this.setupScoreTracking();
+		// this.setupBombTracking();
 		this.setupGameOverRestartControls();
 		this.setupBlurPauseHandling();
 		this.victoryCursorKeys = this.input.keyboard?.createCursorKeys();
@@ -440,6 +434,7 @@ export default class Level extends Phaser.Scene {
 			this.events.off(MainShipUser.ENERGY_CHANGED_EVENT, this.onMainShipEnergyChanged, this);
 			this.events.off(MainShipUser.VICTORY_ESCAPE_COMPLETE_EVENT, this.onVictoryEscapeComplete, this);
 			this.events.off(Enemy1.DIED_EVENT, this.onEnemy1Died, this);
+			// this.events.off(Bomb.COLLECTED_EVENT, this.onBombCollected, this);
 			window.removeEventListener("blur", this.handleWindowBlur);
 			window.removeEventListener("focus", this.handleWindowFocus);
 			document.removeEventListener("visibilitychange", this.handleVisibilityChange);
@@ -539,6 +534,13 @@ export default class Level extends Phaser.Scene {
 	private setupScoreTracking() {
 		this.events.on(MainShipUser.ENERGY_CHANGED_EVENT, this.onMainShipEnergyChanged, this);
 		this.events.on(Enemy1.DIED_EVENT, this.onEnemy1Died, this);
+	}
+
+	private setupBombChargeHud() {
+		this.bombChargeBarBack?.destroy();
+		this.bombChargeBarFill?.destroy();
+		this.bombChargeBarBack = undefined;
+		this.bombChargeBarFill = undefined;
 	}
 
 	private setupLivesHud() {

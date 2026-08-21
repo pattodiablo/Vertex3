@@ -5,11 +5,13 @@
 
 /* START-USER-IMPORTS */
 import * as Phaser from "phaser";
+import AppearEffect from "./AppearEffect";
 import MainShip from "./MainShip";
 import EnemyBase from "./EnemyBase";
 /* END-USER-IMPORTS */
 
 export default class Bomb extends Phaser.GameObjects.Image {
+	static readonly COLLECTED_EVENT = "bomb-collected";
 
 	constructor(scene: Phaser.Scene, x?: number, y?: number, texture?: string, frame?: number | string) {
 		super(scene, x ?? 0, y ?? 0, texture || "megaBomb", frame);
@@ -18,19 +20,43 @@ export default class Bomb extends Phaser.GameObjects.Image {
 		this.scaleY = 0.7;
 
 		/* START-USER-CTR-CODE */
-		this.spinSpeed = Phaser.Math.FloatBetween(0.4, 1.4) * (Phaser.Math.Between(0, 1) === 0 ? -1 : 1);
-		this.setRotation(Phaser.Math.FloatBetween(0, Math.PI * 2));
 		this.setOrigin(0.5, 0.5);
-		this.setScale(this.scaleX, this.scaleY);
-		this.pulseTween = this.scene.tweens.add({
-			targets: this,
-			scaleX: this.scaleX * 1.08,
-			scaleY: this.scaleY * 1.08,
-			alpha: 0.78,
-			duration: 550,
-			ease: "Sine.easeInOut",
-			yoyo: true,
-			repeat: -1,
+		this.setScale(3);
+		this.setAlpha(0);
+		this.setVisible(false);
+		AppearEffect.spawn(this.scene, this.x, this.y, () => {
+			if (!this.active || !this.scene?.sys?.isActive()) {
+				return;
+			}
+
+			this.setVisible(true);
+			this.setAlpha(1);
+			this.setScale(3);
+			this.scene.tweens.add({
+				targets: this,
+				scaleX: 0.7,
+				scaleY: 0.7,
+				duration: 260,
+				ease: "Back.easeOut",
+				onComplete: () => {
+					if (!this.active || !this.scene?.sys?.isActive()) {
+						return;
+					}
+
+					this.spinSpeed = Phaser.Math.FloatBetween(0.4, 1.4) * (Phaser.Math.Between(0, 1) === 0 ? -1 : 1);
+					this.setRotation(Phaser.Math.FloatBetween(0, Math.PI * 2));
+					this.pulseTween = this.scene.tweens.add({
+						targets: this,
+						scaleX: 0.7 * 1.16,
+						scaleY: 0.7 * 1.16,
+						alpha: 0.68,
+						duration: 260,
+						ease: "Quad.easeInOut",
+						yoyo: true,
+						repeat: -1,
+					});
+				}
+			});
 		});
 		this.scene.events.on(Phaser.Scenes.Events.POST_UPDATE, this.updateSpin, this);
 		this.scene.events.on(Phaser.Scenes.Events.POST_UPDATE, this.checkPickupOverlap, this);
@@ -60,14 +86,45 @@ export default class Bomb extends Phaser.GameObjects.Image {
 
 		const dx = ship.x - this.x;
 		const dy = ship.y - this.y;
-		const pickupRadius = Math.max(this.displayWidth, this.displayHeight) * 0.55;
+		const pickupRadius = Math.max(this.displayWidth, this.displayHeight);
 		if (dx * dx + dy * dy > pickupRadius * pickupRadius) {
 			return;
 		}
 
 		EnemyBase.destroyAllLiving();
 		this.spawnShockwave();
+		this.scene?.events.emit(Bomb.COLLECTED_EVENT, { x: this.x, y: this.y });
 		this.destroy();
+	}
+
+	playSpawnWave() {
+		if (!this.scene?.sys?.isActive()) {
+			return;
+		}
+
+		const wave = this.scene.add.graphics();
+		wave.setDepth(20004);
+		wave.setPosition(this.x, this.y);
+
+		const state = { radius: 10, alpha: 0.9 };
+		const drawWave = () => {
+			wave.clear();
+			wave.lineStyle(4, 0x6cee57, state.alpha);
+			wave.strokeCircle(0, 0, state.radius);
+		};
+		drawWave();
+
+		this.scene.tweens.add({
+			targets: state,
+			radius: 52,
+			alpha: 0,
+			duration: 260,
+			ease: "Quad.easeOut",
+			onUpdate: drawWave,
+			onComplete: () => {
+				wave.destroy();
+			},
+		});
 	}
 
 	private spawnShockwave() {
