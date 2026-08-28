@@ -79,7 +79,7 @@ export default class Level extends Phaser.Scene {
 		// pisoShape
 		const pisoShape = b2CreatePolygonShape(body_2, { 
 			...b2DefaultShapeDef(), 
-			friction: 0
+			friction: 0.8
 		}, b2MakeBox(pxm(981.3605825411378), pxm(64)));
 
 		// pared2
@@ -102,7 +102,7 @@ export default class Level extends Phaser.Scene {
 		// pisoShape_1
 		const pisoShape_1 = b2CreatePolygonShape(body_3, { 
 			...b2DefaultShapeDef(), 
-			friction: 0
+			friction: 0.8
 		}, b2MakeBox(pxm(981.3605825411378), pxm(64)));
 
 		// pared3
@@ -123,7 +123,7 @@ export default class Level extends Phaser.Scene {
 		// pisoShape_2
 		const pisoShape_2 = b2CreatePolygonShape(body_4, { 
 			...b2DefaultShapeDef(), 
-			friction: 0
+			friction: 0.8
 		}, b2MakeBox(pxm(981.3605825411378), pxm(64)));
 
 		// pared4
@@ -146,7 +146,7 @@ export default class Level extends Phaser.Scene {
 		// pisoShape_3
 		const pisoShape_3 = b2CreatePolygonShape(body_5, { 
 			...b2DefaultShapeDef(), 
-			friction: 0
+			friction: 0.8
 		}, b2MakeBox(pxm(981.3605825411378), pxm(64)));
 
 		// grid
