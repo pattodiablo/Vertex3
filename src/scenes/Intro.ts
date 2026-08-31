@@ -4,6 +4,7 @@
 /* START OF COMPILED CODE */
 
 /* START-USER-IMPORTS */
+import * as Phaser from "phaser";
 /* END-USER-IMPORTS */
 
 export default class Intro extends Phaser.Scene {
@@ -17,6 +18,12 @@ export default class Intro extends Phaser.Scene {
 	}
 
 	editorCreate(): void {
+
+		// kaelLaunch0
+		this.add.image(498, 380, "KaelLaunch", 0);
+
+		// lulaLaunch0
+		this.add.image(820, 382, "LulaLaunch", 0);
 
 		this.events.emit("scene-awake");
 	}

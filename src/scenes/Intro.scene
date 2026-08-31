@@ -1,26 +1,45 @@
 {
-  "id": "d0a48dc6-ea3a-4cc4-bbc6-6125ec2c7828",
-  "settings": {
-    "compilerOutputLanguage": "TYPE_SCRIPT",
-    "javaScriptInitFieldsInConstructor": false,
-    "javaScriptGenerateFieldDeclarations": true,
-    "exportClass": true,
-    "autoImport": true,
-    "importFileExtension": false,
-    "createMethodName": "editorCreate",
-    "compilerInsertSpaces": false,
-    "compilerTabSize": 4,
-    "borderWidth": 1280,
-    "borderHeight": 720,
-    "borderX": 0,
-    "borderY": 0,
-    "sceneKey": "Intro"
-  },
-  "sceneType": "SCENE",
-  "displayList": [],
-  "meta": {
-    "app": "Phaser Editor 2D - Scene Editor",
-    "url": "https://phasereditor2d.com",
-    "contentType": "phasereditor2d.core.scene.SceneContentType"
-  }
+    "id": "d0a48dc6-ea3a-4cc4-bbc6-6125ec2c7828",
+    "sceneType": "SCENE",
+    "settings": {
+        "exportClass": true,
+        "autoImport": true,
+        "preloadPackFiles": [],
+        "createMethodName": "editorCreate",
+        "sceneKey": "Intro",
+        "compilerOutputLanguage": "TYPE_SCRIPT",
+        "borderWidth": 1280,
+        "borderHeight": 720
+    },
+    "displayList": [
+        {
+            "type": "Image",
+            "id": "5763178e-822f-4cb5-aa1d-9cf11d094216",
+            "label": "kaelLaunch0",
+            "texture": {
+                "key": "KaelLaunch",
+                "frame": 0
+            },
+            "x": 498,
+            "y": 380
+        },
+        {
+            "type": "Image",
+            "id": "c58b71e2-2de1-4f7b-9c58-d899ccaf1a19",
+            "label": "lulaLaunch0",
+            "texture": {
+                "key": "LulaLaunch",
+                "frame": 0
+            },
+            "x": 820,
+            "y": 382
+        }
+    ],
+    "plainObjects": [],
+    "meta": {
+        "app": "Phaser Editor - Scene Editor",
+        "url": "https://phaser.io/editor",
+        "contentType": "phasereditor2d.core.scene.SceneContentType",
+        "version": 5
+    }
 }
