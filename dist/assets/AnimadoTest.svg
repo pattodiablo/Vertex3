@@ -1,0 +1,100 @@
+<svg width="1280" height="480" viewBox="0 0 1280 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+<style>
+@keyframes kf_Polygon_1_transform_0 {
+  0% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  2.08% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  4.15% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  6.23% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  8.3% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  10.38% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  12.45% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  14.53% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  16.6% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  18.68% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  20.75% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  22.83% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  24.9% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  31.16% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  37.42% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  43.68% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  49.93% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  56.19% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  62.45% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  68.71% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  74.97% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  81.23% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  87.48% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  93.74% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+  100% {
+    transform: translateX(185px) translateY(42px) translateY(282px);
+  }
+}
+#Polygon_1 {
+  transform-origin: 0 0;
+  animation: kf_Polygon_1_transform_0 2s linear infinite;
+}
+</style>
+<g id="AnimadoTest" clip-path="url(#clip0_56_2762)">
+<rect width="1280" height="720" id="AnimadoTest_bg_0" fill="#FEF7EE">
+<animate attributeName="height" values="480; 480" keyTimes="0; 1" dur="2s" calcMode="linear" repeatCount="indefinite" />
+
+</rect>
+<path id="Polygon_1" transform="translate(185 42)" d="M72 0L134.354 106.5H9.64617L72 0Z" fill="#D9D9D9">
+<animate attributeName="rx" values="0; 35.748; 35.748" keyTimes="0; 0.249; 1" keySplines="0.5 0 0.5 1; 0 0 1 1" dur="2s" calcMode="spline" repeatCount="indefinite" />
+
+</path>
+</g>
+<defs>
+<clipPath id="clip0_56_2762">
+<rect width="1280" height="720" fill="white"/>
+</clipPath>
+</defs>
+</svg>

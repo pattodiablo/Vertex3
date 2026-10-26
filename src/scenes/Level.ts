@@ -223,19 +223,12 @@ export default class Level extends Phaser.Scene {
 		const retryBtn = new BtnPrefab(this, 0, 0);
 		finalButtons.add(retryBtn);
 
-		// HangarBtn
-		const hangarBtn = new BtnPrefab(this, 0, 63);
-		finalButtons.add(hangarBtn);
-
 		// Box2D debug graphics
 		this.debugGraphics = this.add.graphics();
 		this.debugDraw = new PhaserDebugDraw(this.debugGraphics, this.game.scale.width, this.game.scale.height, 40);
 
 		// retryBtn (prefab fields)
 		retryBtn.BtnText = "RETRY";
-
-		// hangarBtn (prefab fields)
-		hangarBtn.BtnText = "HANGAR";
 
 		this.gameBg = gameBg;
 		this.body_2 = body_2;
@@ -379,7 +372,6 @@ export default class Level extends Phaser.Scene {
 	private victoryScoreLabelText?: Phaser.GameObjects.Text;
 	private victoryScoreValueText?: Phaser.GameObjects.Text;
 	private victoryButtonRetry?: BtnPrefab;
-	private victoryButtonHangar?: BtnPrefab;
 	private victoryButtons: BtnPrefab[] = [];
 	private victorySelectedIndex = 0;
 	private victoryMenuReady = false;
@@ -710,22 +702,14 @@ export default class Level extends Phaser.Scene {
 		this.finalButtons.setVisible(false);
 
 		this.victoryButtonRetry?.destroy();
-		this.victoryButtonRetry = new BtnPrefab(this, this.scale.width * 0.5, this.scale.height * 0.5 + 126);
+		this.victoryButtonRetry = new BtnPrefab(this, this.scale.width * 0.5, this.scale.height * 0.5 + 150);
 		this.victoryButtonRetry.setLabel("Retry?");
 		this.victoryButtonRetry.setScrollFactor(0);
 		this.victoryButtonRetry.setDepth(10004);
 		this.victoryButtonRetry.setVisible(false);
-		this.victoryButtonRetry.onPressed = () => this.activateVictoryButton(0);
+		this.victoryButtonRetry.onPressed = () => this.activateVictoryButton();
 
-		this.victoryButtonHangar?.destroy();
-		this.victoryButtonHangar = new BtnPrefab(this, this.scale.width * 0.5, this.scale.height * 0.5 + 180);
-		this.victoryButtonHangar.setLabel("Hangar");
-		this.victoryButtonHangar.setScrollFactor(0);
-		this.victoryButtonHangar.setDepth(10004);
-		this.victoryButtonHangar.setVisible(false);
-		this.victoryButtonHangar.onPressed = () => this.activateVictoryButton(1);
-
-		this.victoryButtons = [this.victoryButtonRetry, this.victoryButtonHangar];
+		this.victoryButtons = [this.victoryButtonRetry];
 	}
 
 	private setupHudRevealState() {
@@ -855,36 +839,46 @@ export default class Level extends Phaser.Scene {
 		controlsText.setDepth(20001);
 
 		const buttonY = centerY + 110;
-		const buttonBg = this.add.rectangle(centerX, buttonY, 220, 64, 0x0c2b12, 0.9);
+		const buttonBg = this.add.rectangle(0, 0, 220, 64, 0x0c2b12, 0.9);
 		buttonBg.setStrokeStyle(3, 0x6cee57);
-		buttonBg.setScrollFactor(0);
-		buttonBg.setDepth(20001);
 		buttonBg.setInteractive({ useHandCursor: true });
 
-		const buttonText = this.add.text(centerX, buttonY, "READY", {
+		const buttonText = this.add.text(0, 0, "READY", {
 			color: greenColor,
 			fontFamily: "Orbitron",
 			fontSize: "24pt",
 		});
 		buttonText.setOrigin(0.5, 0.5);
-		buttonText.setScrollFactor(0);
-		buttonText.setDepth(20002);
+
+		const readyButton = this.add.container(centerX, buttonY, [buttonBg, buttonText]);
+		readyButton.setScrollFactor(0);
+		readyButton.setDepth(20001);
 
 		buttonBg.on(Phaser.Input.Events.POINTER_OVER, () => {
 			buttonBg.setFillStyle(0x123a18, 0.95);
-			buttonText.setScale(1.08);
 		});
 		buttonBg.on(Phaser.Input.Events.POINTER_OUT, () => {
 			buttonBg.setFillStyle(0x0c2b12, 0.9);
-			buttonText.setScale(1);
 		});
 		buttonBg.on(Phaser.Input.Events.POINTER_DOWN, () => this.dismissTutorial());
+
+		// Heartbeat: thump-thump, pause, repeat — nudges the player to press it.
+		this.tweens.add({
+			targets: readyButton,
+			scale: 1.12,
+			duration: 140,
+			ease: "Sine.easeOut",
+			yoyo: true,
+			hold: 60,
+			repeat: -1,
+			repeatDelay: 500,
+		});
 
 		this.tutorialEnterKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
 		this.tutorialEnterKey?.off(Phaser.Input.Keyboard.Events.DOWN, this.handleTutorialEnterDown, this);
 		this.tutorialEnterKey?.on(Phaser.Input.Keyboard.Events.DOWN, this.handleTutorialEnterDown, this);
 
-		this.tutorialObjects = [bg, title, objectiveLabel, objectiveText, controlsText, buttonBg, buttonText];
+		this.tutorialObjects = [bg, title, objectiveLabel, objectiveText, controlsText, readyButton];
 	}
 
 	private handleTutorialEnterDown() {
@@ -1027,12 +1021,7 @@ export default class Level extends Phaser.Scene {
 			}
 
 			if (this.victoryButtonRetry && this.victoryButtonRetry.getBounds().contains(pointer.x, pointer.y)) {
-				this.activateVictoryButton(0);
-				return;
-			}
-
-			if (this.victoryButtonHangar && this.victoryButtonHangar.getBounds().contains(pointer.x, pointer.y)) {
-				this.activateVictoryButton(1);
+				this.activateVictoryButton();
 			}
 		};
 
@@ -1307,22 +1296,15 @@ export default class Level extends Phaser.Scene {
 	}
 
 	private pollVictoryMenuInput() {
-		if (!this.isVictory || !this.victoryCursorKeys || !this.victoryMenuReady) {
+		if (!this.isVictory || !this.victoryMenuReady) {
 			return;
 		}
 
-		if (Phaser.Input.Keyboard.JustDown(this.victoryCursorKeys.up) || Phaser.Input.Keyboard.JustDown(this.victoryCursorKeys.left)) {
-			this.victorySelectedIndex = 0;
-			this.updateVictoryButtons();
-		}
+		const spacePressed = this.victoryCursorKeys ? Phaser.Input.Keyboard.JustDown(this.victoryCursorKeys.space) : false;
+		const enterPressed = this.victoryEnterKey ? Phaser.Input.Keyboard.JustDown(this.victoryEnterKey) : false;
 
-		if (Phaser.Input.Keyboard.JustDown(this.victoryCursorKeys.down) || Phaser.Input.Keyboard.JustDown(this.victoryCursorKeys.right)) {
-			this.victorySelectedIndex = 1;
-			this.updateVictoryButtons();
-		}
-
-		if (Phaser.Input.Keyboard.JustDown(this.victoryCursorKeys.space) || (this.victoryEnterKey ? Phaser.Input.Keyboard.JustDown(this.victoryEnterKey) : false)) {
-			this.activateVictoryButton(this.victorySelectedIndex);
+		if (spacePressed || enterPressed) {
+			this.activateVictoryButton();
 		}
 	}
 
@@ -1334,21 +1316,14 @@ export default class Level extends Phaser.Scene {
 		}
 	}
 
-	private activateVictoryButton(index: number) {
-		console.log(`Victory button ${index} activated`);
+	private activateVictoryButton() {
 		if (!this.isVictory || !this.sys.isActive()) {
 			return;
 		}
 
-		this.victorySelectedIndex = Phaser.Math.Clamp(index, 0, this.victoryButtons.length - 1);
+		this.victorySelectedIndex = 0;
 		this.updateVictoryButtons();
-
-		if (this.victorySelectedIndex === 0) {
-			this.restartLevel();
-			return;
-		}
-
-		this.scene.start("Preload");
+		this.restartLevel();
 	}
 
 	private showVictoryMessage() {
@@ -1675,7 +1650,7 @@ export default class Level extends Phaser.Scene {
 	 * Shine motion is driven by MusicGridPulse from the analyser.
 	 */
 	private setupMusicGridPulse() {
-		if (!this.grid) {
+		if (!this.grid || PerformanceManager.disableMusicSync) {
 			return;
 		}
 
@@ -1721,7 +1696,9 @@ export default class Level extends Phaser.Scene {
 		}
 		this.updateParallax();
 		// Scene POST_UPDATE always passes (time, delta)
-		this.musicGridPulse?.update(time, d);
+		if (!PerformanceManager.disableMusicSync) {
+			this.musicGridPulse?.update(time, d);
+		}
 	}
 
 	private setupParallaxLayers() {

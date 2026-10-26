@@ -12,6 +12,8 @@ import EnemyBase from "./EnemyBase";
 
 export default class Bomb extends Phaser.GameObjects.Image {
 	static readonly COLLECTED_EVENT = "bomb-collected";
+	private static readonly APPEAR_SOUND_KEY = "nukeAppear";
+	private static readonly ACTIVATE_SOUND_KEY = "shockwave";
 
 	constructor(scene: Phaser.Scene, x?: number, y?: number, texture?: string, frame?: number | string) {
 		super(scene, x ?? 0, y ?? 0, texture || "megaBomb", frame);
@@ -32,6 +34,7 @@ export default class Bomb extends Phaser.GameObjects.Image {
 			this.setVisible(true);
 			this.setAlpha(1);
 			this.setScale(3);
+			this.playAppearSound();
 			this.scene.tweens.add({
 				targets: this,
 				scaleX: 0.7,
@@ -93,8 +96,25 @@ export default class Bomb extends Phaser.GameObjects.Image {
 
 		EnemyBase.destroyAllLiving();
 		this.spawnShockwave();
+		this.playActivateSound();
 		this.scene?.events.emit(Bomb.COLLECTED_EVENT, { x: this.x, y: this.y });
 		this.destroy();
+	}
+
+	private playAppearSound() {
+		if (!this.scene?.cache.audio.exists(Bomb.APPEAR_SOUND_KEY)) {
+			return;
+		}
+
+		this.scene.sound.play(Bomb.APPEAR_SOUND_KEY, { volume: 0.4 });
+	}
+
+	private playActivateSound() {
+		if (!this.scene?.cache.audio.exists(Bomb.ACTIVATE_SOUND_KEY)) {
+			return;
+		}
+
+		this.scene.sound.play(Bomb.ACTIVATE_SOUND_KEY, { volume: 0.45 });
 	}
 
 	playSpawnWave() {

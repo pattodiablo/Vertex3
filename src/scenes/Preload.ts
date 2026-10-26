@@ -6,6 +6,7 @@
 /* START-USER-IMPORTS */
 import * as Phaser from "phaser";
 import assetPackUrl from "../../static/assets/asset-pack.json";
+import PerformanceManager from "../game/PerformanceManager";
 /* END-USER-IMPORTS */
 
 export default class Preload extends Phaser.Scene {
@@ -20,34 +21,37 @@ export default class Preload extends Phaser.Scene {
 
 	editorCreate(): void {
 
-		// guapen
-		const guapen = this.add.image(505.0120544433594, 360, "guapen");
-		guapen.scaleX = 0.32715486817515643;
-		guapen.scaleY = 0.32715486817515643;
-
-		// progressBar
-		const progressBar = this.add.rectangle(553.0120849609375, 361, 256, 20);
-		progressBar.setOrigin(0, 0);
-		progressBar.isFilled = true;
-		progressBar.fillColor = 14737632;
+		const barHeight = this.scale.height * 0.9;
+		const barY = this.scale.height * 0.5 - barHeight * 0.5;
 
 		// progressBarBg
-		const progressBarBg = this.add.rectangle(553.0120849609375, 361, 256, 20);
+		const progressBarBg = this.add.rectangle(0, barY, this.scale.width, barHeight, 0x0c1f12);
 		progressBarBg.setOrigin(0, 0);
-		progressBarBg.fillColor = 14737632;
 		progressBarBg.isStroked = true;
 
-		// loadingText
-		const loadingText = this.add.text(552.0120849609375, 329, "", {});
-		loadingText.text = "Loading...";
-		loadingText.setStyle({ "color": "#e0e0e0", "fontFamily": "arial", "fontSize": "20px" });
+		// progressBar
+		const progressBar = this.add.rectangle(0, barY, 0, barHeight, 0x6cee57);
+		progressBar.setOrigin(0, 0);
+		progressBar.isFilled = true;
+
+		// percentText
+		const percentText = this.add.text(this.scale.width * 0.5, barY + barHeight * 0.5, "0%", {
+			color: "#000000",
+			fontFamily: "Orbitron",
+			fontSize: "72pt",
+			fontStyle: "bold",
+		});
+		percentText.setOrigin(0.5, 0.5);
+		percentText.setDepth(1);
 
 		this.progressBar = progressBar;
+		this.percentText = percentText;
 
 		this.events.emit("scene-awake");
 	}
 
 	private progressBar!: Phaser.GameObjects.Rectangle;
+	private percentText!: Phaser.GameObjects.Text;
 
 	/* START-USER-CODE */
 
@@ -55,15 +59,17 @@ export default class Preload extends Phaser.Scene {
 
 	preload() {
 
+		PerformanceManager.ensureDetected();
 		this.editorCreate();
 
 		this.load.pack("asset-pack", assetPackUrl);
 
-		const width = this.progressBar.width;
+		const fullWidth = this.scale.width;
 
 		this.load.on("progress", (value: number) => {
 
-			this.progressBar.width = width * value;
+			this.progressBar.width = fullWidth * value;
+			this.percentText.setText(`${Math.round(value * 100)}%`);
 		});
 	}
 

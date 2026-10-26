@@ -322,6 +322,13 @@
                 "key": "newExplode"
             },
             {
+                "url": [
+                    "assets/audio/nukeAppear.mp3"
+                ],
+                "type": "audio",
+                "key": "nukeAppear"
+            },
+            {
                 "url": "assets/OpenPortal.png",
                 "frameConfig": {
                     "frameWidth": 256,
@@ -372,6 +379,13 @@
                 },
                 "type": "spritesheet",
                 "key": "shipAppear"
+            },
+            {
+                "url": [
+                    "assets/audio/shockwave.mp3"
+                ],
+                "type": "audio",
+                "key": "shockwave"
             }
         ]
     },
