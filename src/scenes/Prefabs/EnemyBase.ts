@@ -22,6 +22,9 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 	static readonly ENEMY_CATEGORY = 0x0004;
 	static readonly BULLET_CATEGORY = 0x0002;
 
+	private static readonly DEATH_EXPLOSION_KEYS = ["explotion1", "explotion2"];
+	private static readonly APPEAR_SOUND_KEY = "appear1";
+
 	private static readonly enemiesByBodyKey = new Map<string, EnemyBase>();
 	private static readonly openPortalPool: OpenPortal[] = [];
 	private static readonly box2d = PhaserBox2D as typeof PhaserBox2D & {
@@ -93,6 +96,7 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 		else { this.x = this.spawnX; this.y = this.spawnY; this.rotation = this.spawnRotation; }
 		this.isAppearing = true;
 		this.isAppeared = false;
+		this.playAppearSound();
 		this.isDead = false;
 		this.hp = this.getEnemyLife();
 		this.setVisible(false);
@@ -147,7 +151,7 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 		}
 		return count;
 	}
-	takeDamage(amount = 1) { if (this.isDead || !this.isAppeared || !this.active || !this.scene) return; this.hp = Math.max(0, this.hp - amount); this.setTint(0xffffff); this.scene.time.delayedCall(50, () => { if (this.active && !this.isDead && this.scene) this.clearTint(); }); if (this.hp <= 0) this.die(); }
+	takeDamage(amount = 1) { if (this.isDead || !this.isAppeared || !this.active || !this.scene) return; this.hp = Math.max(0, this.hp - amount); this.setTint(0xffffff).setTintMode(Phaser.TintModes.FILL); this.scene.time.delayedCall(90, () => { if (this.active && !this.isDead && this.scene) this.clearTint().setTintMode(Phaser.TintModes.MULTIPLY); }); if (this.hp <= 0) this.die(); }
 	static applyHitFromBody(bodyId: b2BodyId, damage = 1): boolean { const key = EnemyBase.makeBodyKey(bodyId); const enemy = EnemyBase.enemiesByBodyKey.get(key); if (!enemy || enemy.isDead) return false; enemy.takeDamage(damage); return true; }
 	static getNearestLiving(fromX: number, fromY: number): EnemyBase | null { let best: EnemyBase | null = null; let bestDistSq = Infinity; for (const enemy of EnemyBase.enemiesByBodyKey.values()) { if (!enemy.active || !enemy.visible || enemy.isDead || !enemy.hasAppeared) continue; const dx = enemy.x - fromX; const dy = enemy.y - fromY; const distSq = dx * dx + dy * dy; if (distSq < bestDistSq) { bestDistSq = distSq; best = enemy; } } return best; }
 	static destroyAllLiving() { const list = Array.from(EnemyBase.enemiesByBodyKey.values()); for (const enemy of list) if (!enemy.isDead) enemy.die(false); }
@@ -164,7 +168,9 @@ export default abstract class EnemyBase extends Phaser.GameObjects.Image {
 	protected checkBulletHits() { const r2 = this.hitRadius * this.hitRadius; Bullet.forEachActive((bullet) => { const dx = bullet.x - this.x; const dy = bullet.y - this.y; if (dx * dx + dy * dy > r2) return; if (Bullet.tryQueueDestroy(bullet.bodyId)) this.takeDamage(1); }); }
 	protected chaseMainShip(delta: number) { const ship = this.getMainShip(); const step = (this.moveSpeed * delta) / 1000; if (!ship || !ship.active || !ship.visible || ship.hasDied || (typeof ship.hasAppeared === "boolean" && !ship.hasAppeared)) { const angle = Number.isFinite(this.rotation) ? this.rotation : this.spawnRotation; this.x += Math.cos(angle) * step; this.y += Math.sin(angle) * step; return; } const dx = ship.x - this.x; const dy = ship.y - this.y; const dist = Math.hypot(dx, dy); if (dist <= this.arriveDistance) return; const nx = dx / dist; const ny = dy / dist; const travel = Math.min(step, dist - this.arriveDistance); this.x += nx * travel; this.y += ny * travel; if (this.faceTarget) this.rotation = Math.atan2(dy, dx); }
 	protected checkShipCollision() { const ship = this.getMainShip(); if (!ship || !ship.active || !ship.visible || ship.hasDied || !ship.hasAppeared) return; const dx = ship.x - this.x; const dy = ship.y - this.y; const r = this.shipHitRadius; if (dx * dx + dy * dy <= r * r) ship.dieFromEnemyHit(); }
-	die(grantRewards = true) { if (this.isDead) return; this.isDead = true; this.isAppeared = false; const x = this.x; const y = this.y; const scene = this.scene; this.teardownPhysics(); if (scene?.sys?.isActive()) { Explode2.spawn(scene, x, y); energyParticle.spawnBurst(scene, x, y); if (grantRewards) scene.events.emit(EnemyBase.DIED_EVENT, { baseScore: 10, x, y }); } if (this.active) this.destroy(); }
+	die(grantRewards = true) { if (this.isDead) return; this.isDead = true; this.isAppeared = false; const x = this.x; const y = this.y; const scene = this.scene; this.teardownPhysics(); if (scene?.sys?.isActive()) { Explode2.spawn(scene, x, y); energyParticle.spawnBurst(scene, x, y); this.playDeathExplosionSound(scene); if (grantRewards) scene.events.emit(EnemyBase.DIED_EVENT, { baseScore: 10, x, y }); } if (this.active) this.destroy(); }
+	private playDeathExplosionSound(scene: Phaser.Scene) { const key = Phaser.Utils.Array.GetRandom(EnemyBase.DEATH_EXPLOSION_KEYS); if (!scene.cache.audio.exists(key)) return; const rate = Phaser.Math.FloatBetween(0.85, 1.15); scene.sound.play(key, { volume: 0.3, rate }); }
+	private playAppearSound() { if (!this.scene?.cache.audio.exists(EnemyBase.APPEAR_SOUND_KEY)) return; const rate = Phaser.Math.FloatBetween(0.8, 1.25); this.scene.sound.play(EnemyBase.APPEAR_SOUND_KEY, { volume: 0.3, rate }); }
 	protected syncBodyTransform() { if (!this.bodyId) return; const b2 = EnemyBase.box2d; b2.b2Body_SetTransform(this.bodyId, pxmVec2(this.x, -this.y), RotFromRad(this.rotation)); b2.b2Body_SetLinearVelocity(this.bodyId, new b2Vec2(0, 0)); b2.b2Body_SetAngularVelocity(this.bodyId, 0); }
 	protected enableBody() { if (this.bodyId) { EnemyBase.box2d.b2Body_Enable(this.bodyId); this.syncBodyTransform(); } }
 	protected disableBody() { if (this.bodyId) EnemyBase.box2d.b2Body_Disable(this.bodyId); }

@@ -33,6 +33,7 @@ import LevelMusic from "../audio/LevelMusic";
 import MusicGridPulse from "../audio/MusicGridPulse";
 import EnemySpawner from "../enemies/Enemy1Spawner";
 import DifficultyManager from "../game/DifficultyManager";
+import PerformanceManager from "../game/PerformanceManager";
 import EnemyBase from "./Prefabs/EnemyBase";
 import Explode2 from "./Prefabs/Explode2";
 /* END-USER-IMPORTS */
@@ -366,6 +367,14 @@ export default class Level extends Phaser.Scene {
 	private bombChargeBarBack?: Phaser.GameObjects.Rectangle;
 	private bombChargeBarFill?: Phaser.GameObjects.Rectangle;
 	private gameOverText?: Phaser.GameObjects.Text;
+	private gameOverScoreLabelText?: Phaser.GameObjects.Text;
+	private gameOverScoreValueText?: Phaser.GameObjects.Text;
+	private gameOverHintText?: Phaser.GameObjects.Text;
+	private gameOverHintTween?: Phaser.Tweens.Tween;
+	private isTutorialActive = true;
+	private tutorialObjects: Phaser.GameObjects.GameObject[] = [];
+	private tutorialEnterKey?: Phaser.Input.Keyboard.Key;
+	private hudObjects: Array<Phaser.GameObjects.Text | Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle> = [];
 	private victoryText?: Phaser.GameObjects.Text;
 	private victoryScoreLabelText?: Phaser.GameObjects.Text;
 	private victoryScoreValueText?: Phaser.GameObjects.Text;
@@ -391,6 +400,7 @@ export default class Level extends Phaser.Scene {
 
 	create() {
 
+		MainShipUser.autoAppearOnAdd = false;
 		this.editorCreate();
 		this.resetRuntimeState();
 
@@ -430,6 +440,8 @@ export default class Level extends Phaser.Scene {
 		this.setupScoreTracking();
 		this.setupBombTracking();
 		this.setupGameOverRestartControls();
+		this.setupHudRevealState();
+		this.setupTutorialOverlay();
 		this.setupBlurPauseHandling();
 		this.setupVictoryPointerControls();
 		this.victoryCursorKeys = this.input.keyboard?.createCursorKeys();
@@ -457,6 +469,8 @@ export default class Level extends Phaser.Scene {
 			this.restartEnterKey = undefined;
 			this.victoryEnterKey?.destroy();
 			this.victoryEnterKey = undefined;
+			this.tutorialEnterKey?.off(Phaser.Input.Keyboard.Events.DOWN, this.handleTutorialEnterDown, this);
+			this.tutorialEnterKey = undefined;
 			this.gameOverRestartDelayTimer?.remove(false);
 			this.gameOverRestartDelayTimer = undefined;
 			this.mainShipRespawnTimer?.remove(false);
@@ -483,6 +497,7 @@ export default class Level extends Phaser.Scene {
 	}
 
 	private resetRuntimeState() {
+		this.isTutorialActive = true;
 		this.isGameOver = false;
 		this.canRestartFromGameOver = false;
 		this.isRestartingFromGameOver = false;
@@ -597,6 +612,50 @@ export default class Level extends Phaser.Scene {
 		this.gameOverText.setScrollFactor(0);
 		this.gameOverText.setDepth(10000);
 		this.gameOverText.setVisible(false);
+
+		this.gameOverScoreLabelText?.destroy();
+		this.gameOverScoreLabelText = this.add.text(this.scale.width * 0.5, this.scale.height * 0.5 + 56, "score", {
+			color: "#6CEE57",
+			fontFamily: "Orbitron",
+			fontSize: "18pt",
+			shadow: {
+				offsetX: 3,
+				offsetY: 3,
+				stroke: true,
+			},
+		});
+		this.gameOverScoreLabelText.setOrigin(0.5, 0.5);
+		this.gameOverScoreLabelText.setScrollFactor(0);
+		this.gameOverScoreLabelText.setDepth(10000);
+		this.gameOverScoreLabelText.setVisible(false);
+
+		this.gameOverScoreValueText?.destroy();
+		this.gameOverScoreValueText = this.add.text(this.scale.width * 0.5, this.scale.height * 0.5 + 100, "000000000", {
+			color: "#6CEE57",
+			fontFamily: "Orbitron",
+			fontSize: "30pt",
+			shadow: {
+				offsetX: 3,
+				offsetY: 3,
+				stroke: true,
+			},
+		});
+		this.gameOverScoreValueText.setOrigin(0.5, 0.5);
+		this.gameOverScoreValueText.setScrollFactor(0);
+		this.gameOverScoreValueText.setDepth(10000);
+		this.gameOverScoreValueText.setVisible(false);
+
+		this.gameOverHintText?.destroy();
+		this.gameOverHintText = this.add.text(this.scale.width * 0.5, this.scale.height * 0.5 + 160, "CLICK OR PRESS ENTER TO CONTINUE", {
+			color: "#6CEE57",
+			fontFamily: "Orbitron",
+			fontSize: "16pt",
+		});
+		this.gameOverHintText.setOrigin(0.5, 0.5);
+		this.gameOverHintText.setScrollFactor(0);
+		this.gameOverHintText.setDepth(10000);
+		this.gameOverHintText.setVisible(false);
+		this.gameOverHintText.setAlpha(0);
 	}
 
 	private setupVictoryText() {
@@ -667,6 +726,198 @@ export default class Level extends Phaser.Scene {
 		this.victoryButtonHangar.onPressed = () => this.activateVictoryButton(1);
 
 		this.victoryButtons = [this.victoryButtonRetry, this.victoryButtonHangar];
+	}
+
+	private setupHudRevealState() {
+		this.hudObjects = [
+			this.scoreText,
+			this.scoreText_1,
+			this.multiplierText,
+			this.multiplierX,
+			this.timeText,
+			this.lifeHeart1,
+			this.lifeHeart2,
+			this.lifeHeart3,
+			this.bestTitle,
+			this.bestText,
+		].filter(Boolean);
+
+		if (this.bombChargeBarBack) {
+			this.hudObjects.push(this.bombChargeBarBack);
+		}
+		if (this.bombChargeBarFill) {
+			this.hudObjects.push(this.bombChargeBarFill);
+		}
+
+		this.hudObjects.forEach((obj) => {
+			obj.alpha = 0;
+			obj.scale = 0.6;
+		});
+	}
+
+	private revealHud() {
+		if (this.hudObjects.length === 0) {
+			return;
+		}
+
+		const targets = this.hudObjects;
+		this.tweens.killTweensOf(targets);
+		this.tweens.add({
+			targets,
+			alpha: 1,
+			scale: 1,
+			duration: 550,
+			ease: "Back.easeOut",
+		});
+	}
+
+	private setupTutorialOverlay() {
+		this.tutorialObjects.forEach((obj) => obj.destroy());
+		this.tutorialObjects = [];
+		this.tutorialEnterKey?.off(Phaser.Input.Keyboard.Events.DOWN, this.handleTutorialEnterDown, this);
+		this.tutorialEnterKey = undefined;
+		this.isTutorialActive = true;
+
+		const width = this.scale.width;
+		const height = this.scale.height;
+		const centerX = width * 0.5;
+		const centerY = height * 0.5;
+		const greenColor = "#6CEE57";
+
+		const bg = this.add.rectangle(centerX, centerY, width, height, 0x000000, 0.82);
+		bg.setScrollFactor(0);
+		bg.setDepth(20000);
+
+		const title = this.add.text(centerX, centerY - 275, "VERTEX 3", {
+			color: greenColor,
+			fontFamily: "Orbitron",
+			fontSize: "58pt",
+			fontStyle: "bold",
+			stroke: "#0b2e12",
+			strokeThickness: 6,
+			shadow: {
+				offsetX: 0,
+				offsetY: 0,
+				color: "#6CEE57",
+				blur: 18,
+				fill: true,
+			},
+		});
+		title.setOrigin(0.5, 0.5);
+		title.setScrollFactor(0);
+		title.setDepth(20001);
+		title.setScale(0.6);
+		title.setAlpha(0);
+		this.tweens.add({
+			targets: title,
+			scale: 1,
+			alpha: 1,
+			duration: 650,
+			ease: "Back.easeOut",
+		});
+
+		const objectiveLabel = this.add.text(centerX, centerY - 170, "OBJECTIVE", {
+			color: greenColor,
+			fontFamily: "Orbitron",
+			fontSize: "16pt",
+		});
+		objectiveLabel.setOrigin(0.5, 0.5);
+		objectiveLabel.setScrollFactor(0);
+		objectiveLabel.setDepth(20001);
+
+		const totalSeconds = Math.floor(this.gameplayDurationMs / 1000);
+		const minutes = Math.floor(totalSeconds / 60);
+		const seconds = totalSeconds % 60;
+		const timeLabel = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+
+		const objectiveText = this.add.text(centerX, centerY - 120, `SURVIVE ${timeLabel}`, {
+			color: greenColor,
+			fontFamily: "Orbitron",
+			fontSize: "34pt",
+		});
+		objectiveText.setOrigin(0.5, 0.5);
+		objectiveText.setScrollFactor(0);
+		objectiveText.setDepth(20001);
+
+		const isTouchDevice = !!this.sys.game.device.input.touch;
+		const controlsLines = isTouchDevice
+			? "DRAG ANYWHERE TO MOVE\nTHE SHIP AUTO-FIRES AT THE NEAREST ENEMY"
+			: "MOVE WITH WASD OR ARROW KEYS\nTHE SHIP AUTO-FIRES AT THE NEAREST ENEMY";
+
+		const controlsText = this.add.text(centerX, centerY - 10, controlsLines, {
+			color: greenColor,
+			fontFamily: "Orbitron",
+			fontSize: "15pt",
+			align: "center",
+		});
+		controlsText.setOrigin(0.5, 0.5);
+		controlsText.setScrollFactor(0);
+		controlsText.setDepth(20001);
+
+		const buttonY = centerY + 110;
+		const buttonBg = this.add.rectangle(centerX, buttonY, 220, 64, 0x0c2b12, 0.9);
+		buttonBg.setStrokeStyle(3, 0x6cee57);
+		buttonBg.setScrollFactor(0);
+		buttonBg.setDepth(20001);
+		buttonBg.setInteractive({ useHandCursor: true });
+
+		const buttonText = this.add.text(centerX, buttonY, "READY", {
+			color: greenColor,
+			fontFamily: "Orbitron",
+			fontSize: "24pt",
+		});
+		buttonText.setOrigin(0.5, 0.5);
+		buttonText.setScrollFactor(0);
+		buttonText.setDepth(20002);
+
+		buttonBg.on(Phaser.Input.Events.POINTER_OVER, () => {
+			buttonBg.setFillStyle(0x123a18, 0.95);
+			buttonText.setScale(1.08);
+		});
+		buttonBg.on(Phaser.Input.Events.POINTER_OUT, () => {
+			buttonBg.setFillStyle(0x0c2b12, 0.9);
+			buttonText.setScale(1);
+		});
+		buttonBg.on(Phaser.Input.Events.POINTER_DOWN, () => this.dismissTutorial());
+
+		this.tutorialEnterKey = this.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+		this.tutorialEnterKey?.off(Phaser.Input.Keyboard.Events.DOWN, this.handleTutorialEnterDown, this);
+		this.tutorialEnterKey?.on(Phaser.Input.Keyboard.Events.DOWN, this.handleTutorialEnterDown, this);
+
+		this.tutorialObjects = [bg, title, objectiveLabel, objectiveText, controlsText, buttonBg, buttonText];
+	}
+
+	private handleTutorialEnterDown() {
+		this.dismissTutorial();
+	}
+
+	private dismissTutorial() {
+		if (!this.isTutorialActive) {
+			return;
+		}
+
+		this.isTutorialActive = false;
+		this.tutorialEnterKey?.off(Phaser.Input.Keyboard.Events.DOWN, this.handleTutorialEnterDown, this);
+		this.tutorialEnterKey = undefined;
+
+		const fadingObjects = this.tutorialObjects;
+		this.tutorialObjects = [];
+		this.tweens.killTweensOf(fadingObjects);
+		this.tweens.add({
+			targets: fadingObjects,
+			alpha: 0,
+			duration: 220,
+			ease: "Sine.easeIn",
+			onComplete: () => {
+				fadingObjects.forEach((obj) => obj.destroy());
+			},
+		});
+
+		MainShipUser.autoAppearOnAdd = true;
+		this.mainShip?.appear();
+		this.enemySpawner?.start();
+		this.levelMusic?.start();
+		this.revealHud();
 	}
 
 	private setupPauseText() {
@@ -834,6 +1085,8 @@ export default class Level extends Phaser.Scene {
 		this.scorePulseTween = undefined;
 		this.timeWarningTween?.stop();
 		this.timeWarningTween = undefined;
+		this.gameOverHintTween?.stop();
+		this.gameOverHintTween = undefined;
 		this.scene.restart();
 	}
 
@@ -912,6 +1165,10 @@ export default class Level extends Phaser.Scene {
 
 	/** Spawn a fresh MainShip with appear intro at the default spawn point. */
 	private respawnMainShip() {
+		if (this.isGameOver || this.isVictory || this.timeExpired) {
+			return;
+		}
+
 		this.difficulty?.onShipRespawned();
 		const ship = new MainShipUser(this, this.mainShipSpawnX, this.mainShipSpawnY);
 		this.add.existing(ship);
@@ -952,6 +1209,26 @@ export default class Level extends Phaser.Scene {
 			ease: "Back.easeOut",
 		});
 
+		if (this.gameOverScoreLabelText && this.gameOverScoreValueText) {
+			const formattedScore = Math.max(0, Math.floor(this.score)).toString().padStart(9, "0");
+			this.gameOverScoreValueText.setText(formattedScore);
+			this.gameOverScoreLabelText.setAlpha(0);
+			this.gameOverScoreLabelText.setScale(0.8);
+			this.gameOverScoreLabelText.setVisible(true);
+			this.gameOverScoreValueText.setAlpha(0);
+			this.gameOverScoreValueText.setScale(0.8);
+			this.gameOverScoreValueText.setVisible(true);
+			this.tweens.add({
+				targets: [this.gameOverScoreLabelText, this.gameOverScoreValueText],
+				alpha: 1,
+				scaleX: 1,
+				scaleY: 1,
+				duration: 320,
+				delay: 120,
+				ease: "Back.easeOut",
+			});
+		}
+
 		this.gameOverRestartDelayTimer = this.time.delayedCall(this.gameOverRestartDelayMs, () => {
 			this.gameOverRestartDelayTimer = undefined;
 			if (!this.sys.isActive() || !this.isGameOver) {
@@ -959,6 +1236,25 @@ export default class Level extends Phaser.Scene {
 			}
 
 			this.canRestartFromGameOver = true;
+			this.showGameOverHint();
+		});
+	}
+
+	private showGameOverHint() {
+		if (!this.gameOverHintText) {
+			return;
+		}
+
+		this.gameOverHintTween?.stop();
+		this.gameOverHintText.setAlpha(0);
+		this.gameOverHintText.setVisible(true);
+		this.gameOverHintTween = this.tweens.add({
+			targets: this.gameOverHintText,
+			alpha: { from: 0.25, to: 1 },
+			duration: 650,
+			ease: "Sine.easeInOut",
+			yoyo: true,
+			repeat: -1,
 		});
 	}
 
@@ -979,7 +1275,31 @@ export default class Level extends Phaser.Scene {
 		this.enemySpawner?.destroy();
 		this.enemySpawner = undefined;
 		this.playLevelOutro();
-		ship.beginVictoryEscape();
+		this.forceShipExit(ship);
+	}
+
+	/**
+	 * Sends the ship off-screen even if it's still mid-"appear" (e.g. it just
+	 * respawned the same frame the gameplay timer ran out) — beginVictoryEscape()
+	 * no-ops until the ship has fully appeared, so this waits for that first.
+	 */
+	private forceShipExit(ship: MainShipUser) {
+		if (!ship.active || ship.hasDied) {
+			return;
+		}
+
+		if (ship.hasAppeared) {
+			ship.beginVictoryEscape();
+			return;
+		}
+
+		this.time.delayedCall(100, () => {
+			if (!this.sys.isActive()) {
+				return;
+			}
+
+			this.forceShipExit(ship);
+		});
 	}
 
 	private onVictoryEscapeComplete() {
@@ -1150,7 +1470,7 @@ export default class Level extends Phaser.Scene {
 	}
 
 	private updateGameplayTimer(delta: number) {
-		if (this.isGameOver || this.timeExpired) {
+		if (this.isGameOver || this.timeExpired || this.isTutorialActive) {
 			return;
 		}
 
@@ -1178,10 +1498,12 @@ export default class Level extends Phaser.Scene {
 		this.scorePulseTween = undefined;
 		this.mainShipRespawnTimer?.remove(false);
 		this.mainShipRespawnTimer = undefined;
+		this.enemySpawner?.destroy();
+		this.enemySpawner = undefined;
 
 		Enemy1.destroyAllLiving();
 		const ship = this.mainShip;
-		if (ship?.active && !ship.hasDied && ship.hasAppeared) {
+		if (ship?.active && !ship.hasDied) {
 			this.triggerVictory(ship);
 			return;
 		}
@@ -1330,7 +1652,10 @@ export default class Level extends Phaser.Scene {
 					enemyMoveSpeed: 90,
 				},
 		});
-		this.enemySpawner.start();
+
+		if (!this.isTutorialActive) {
+			this.enemySpawner.start();
+		}
 	}
 
 	/**
@@ -1339,7 +1664,10 @@ export default class Level extends Phaser.Scene {
 	 */
 	private setupLevelMusic() {
 		this.levelMusic = new LevelMusic(this);
-		this.levelMusic.start();
+
+		if (!this.isTutorialActive) {
+			this.levelMusic.start();
+		}
 	}
 
 	/**
@@ -1384,10 +1712,13 @@ export default class Level extends Phaser.Scene {
 
 	private onPostUpdateEffects(time: number, delta: number) {
 		const d = delta ?? this.game.loop.delta;
+		PerformanceManager.update(this, d);
 		this.pollGamepadGameOverRestart();
 		this.pollVictoryMenuInput();
 		this.updateGameplayTimer(d);
-		this.difficulty?.update(d);
+		if (!this.isTutorialActive) {
+			this.difficulty?.update(d);
+		}
 		this.updateParallax();
 		// Scene POST_UPDATE always passes (time, delta)
 		this.musicGridPulse?.update(time, d);

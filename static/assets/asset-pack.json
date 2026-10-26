@@ -17,6 +17,13 @@
                 "key": "animations"
             },
             {
+                "url": [
+                    "assets/audio/appear1.mp3"
+                ],
+                "type": "audio",
+                "key": "appear1"
+            },
+            {
                 "url": "assets/appearEffect.png",
                 "frameConfig": {
                     "frameWidth": 96,
@@ -193,6 +200,20 @@
                 "key": "Explosion31"
             },
             {
+                "url": [
+                    "assets/audio/explotion1.mp3"
+                ],
+                "type": "audio",
+                "key": "explotion1"
+            },
+            {
+                "url": [
+                    "assets/audio/explotion2.mp3"
+                ],
+                "type": "audio",
+                "key": "explotion2"
+            },
+            {
                 "url": "assets/FufuSuperDino.png",
                 "type": "image",
                 "key": "FufuSuperDino"
@@ -244,6 +265,13 @@
                 "url": "assets/LifeHeart.png",
                 "type": "image",
                 "key": "LifeHeart"
+            },
+            {
+                "url": [
+                    "assets/audio/locked.mp3"
+                ],
+                "type": "audio",
+                "key": "locked"
             },
             {
                 "url": "assets/KatsAnims/LulaLaunch.png",
@@ -324,6 +352,13 @@
                 "url": "assets/particleShip.png",
                 "type": "image",
                 "key": "particleShip"
+            },
+            {
+                "url": [
+                    "assets/audio/proximity.mp3"
+                ],
+                "type": "audio",
+                "key": "proximity"
             },
             {
                 "url": "assets/shipAppear.png",

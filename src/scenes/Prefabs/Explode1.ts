@@ -5,6 +5,7 @@
 
 /* START-USER-IMPORTS */
 import * as Phaser from "phaser";
+import PerformanceManager from "../../game/PerformanceManager";
 /* END-USER-IMPORTS */
 
 export default class Explode1 extends Phaser.GameObjects.Sprite {
@@ -55,6 +56,11 @@ export default class Explode1 extends Phaser.GameObjects.Sprite {
 	 * Lightweight wall-hit VFX: only a few particles, no explosion sprite animation.
 	 */
 	static spawnWallImpact(scene: Phaser.Scene, x: number, y: number) {
+		const particleScale = PerformanceManager.particleScale;
+		if (particleScale <= 0) {
+			return;
+		}
+
 		Explode1.ensureParticleTexture(scene);
 
 		const emitter = scene.add.particles(x, y, Explode1.PARTICLE_TEXTURE_KEY, {
@@ -70,7 +76,7 @@ export default class Explode1 extends Phaser.GameObjects.Sprite {
 			quantity: 0,
 		});
 
-		emitter.explode(Explode1.WALL_PARTICLE_COUNT);
+		emitter.explode(Math.max(1, Math.round(Explode1.WALL_PARTICLE_COUNT * particleScale)));
 		scene.time.delayedCall(240, () => {
 			if (emitter && emitter.scene) {
 				emitter.destroy();
@@ -104,6 +110,11 @@ export default class Explode1 extends Phaser.GameObjects.Sprite {
 	 * One-shot radial burst: green + blue particles in all directions, then emitter dies.
 	 */
 	private burstParticles() {
+		const particleScale = PerformanceManager.particleScale;
+		if (particleScale <= 0) {
+			return;
+		}
+
 		const scene = this.scene;
 		Explode1.ensureParticleTexture(scene);
 
@@ -128,7 +139,7 @@ export default class Explode1 extends Phaser.GameObjects.Sprite {
 		emitter.setDepth(this.depth + 1);
 
 		// Fire once in every direction
-		emitter.explode(Explode1.PARTICLE_COUNT);
+		emitter.explode(Math.max(1, Math.round(Explode1.PARTICLE_COUNT * particleScale)));
 
 		// Destroy emitter after the longest particle can live
 		scene.time.delayedCall(Explode1.PARTICLE_MAX_LIFE + 50, () => {

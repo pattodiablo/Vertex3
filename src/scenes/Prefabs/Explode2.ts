@@ -5,6 +5,7 @@
 
 /* START-USER-IMPORTS */
 import * as Phaser from "phaser";
+import PerformanceManager from "../../game/PerformanceManager";
 /* END-USER-IMPORTS */
 
 export default class Explode2 extends Phaser.GameObjects.Sprite {
@@ -108,6 +109,11 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 	 * long lifespan so they hang in space like Megaman death balls.
 	 */
 	private burstFloatingOrbs() {
+		const particleScale = PerformanceManager.particleScale;
+		if (particleScale <= 0) {
+			return;
+		}
+
 		const scene = this.scene;
 		Explode2.ensureOrbTexture(scene);
 
@@ -130,7 +136,7 @@ export default class Explode2 extends Phaser.GameObjects.Sprite {
 		});
 
 		orbs.setDepth(this.depth + 1);
-		orbs.explode(Explode2.ORB_COUNT);
+		orbs.explode(Math.max(1, Math.round(Explode2.ORB_COUNT * particleScale)));
 
 		scene.time.delayedCall(Explode2.ORB_MAX_LIFE + 100, () => {
 			if (orbs.scene) {

@@ -26,6 +26,7 @@ import * as PhaserBox2D from "../../box2d/PhaserBox2D";
 /* END-USER-IMPORTS */
 
 export default class MainShip extends Phaser.GameObjects.Image {
+	static autoAppearOnAdd = true;
 	private static currentShip?: MainShip;
 	private static readonly BASE_SCALE = 0.8;
 	private static readonly BODY_RADIUS_PX = 41 * MainShip.BASE_SCALE;
@@ -71,7 +72,9 @@ export default class MainShip extends Phaser.GameObjects.Image {
 		this.isAppeared = false;
 		this.once(Phaser.GameObjects.Events.ADDED_TO_SCENE, () => {
 			MainShip.currentShip = this;
-			this.appear();
+			if (MainShip.autoAppearOnAdd) {
+				this.appear();
+			}
 		});
 		this.once(Phaser.GameObjects.Events.DESTROY, () => {
 			if (MainShip.currentShip === this) {
@@ -165,6 +168,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 	private static readonly EXHAUST_PARTICLE_KEY = "soft-circle-particle";
 	private static readonly FIRE_SOUND_KEY = "Explosion31";
 	private static readonly DIE_EXPLOSION = "Explosion16";
+	private static readonly MINE_DROP_SOUND_KEY = "locked";
 	private readonly shipDepth = 10;
 	private readonly exhaustDepth = 5;
 	private exhaustEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -229,8 +233,18 @@ export default class MainShip extends Phaser.GameObjects.Image {
 
 				const mine = new Mine(this.scene, this.x, this.y);
 				this.scene.add.existing(mine);
+				this.playMineDropSound();
 			},
 		});
+	}
+
+	private playMineDropSound() {
+		if (!this.scene.cache.audio.exists(MainShip.MINE_DROP_SOUND_KEY)) {
+			return;
+		}
+
+		const rate = Phaser.Math.FloatBetween(0.85, 1.15);
+		this.scene.sound.play(MainShip.MINE_DROP_SOUND_KEY, { volume: 0.3, rate });
 	}
 
 	private stopMineDrops() {
