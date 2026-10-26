@@ -34,6 +34,7 @@ import MusicGridPulse from "../audio/MusicGridPulse";
 import EnemySpawner from "../enemies/Enemy1Spawner";
 import DifficultyManager from "../game/DifficultyManager";
 import PerformanceManager from "../game/PerformanceManager";
+import PokiSdk from "../game/PokiSdk";
 import EnemyBase from "./Prefabs/EnemyBase";
 import Explode2 from "./Prefabs/Explode2";
 /* END-USER-IMPORTS */
@@ -761,6 +762,7 @@ export default class Level extends Phaser.Scene {
 		this.tutorialEnterKey?.off(Phaser.Input.Keyboard.Events.DOWN, this.handleTutorialEnterDown, this);
 		this.tutorialEnterKey = undefined;
 		this.isTutorialActive = true;
+		PokiSdk.measure("tutorial", "intro", "start");
 
 		const width = this.scale.width;
 		const height = this.scale.height;
@@ -912,6 +914,9 @@ export default class Level extends Phaser.Scene {
 		this.enemySpawner?.start();
 		this.levelMusic?.start();
 		this.revealHud();
+		PokiSdk.gameplayStart();
+		PokiSdk.measure("tutorial", "intro", "complete");
+		PokiSdk.measure("level", "1", "start");
 	}
 
 	private setupPauseText() {
@@ -1043,10 +1048,13 @@ export default class Level extends Phaser.Scene {
 
 		this.isGameOver = false;
 		this.isRestartingFromGameOver = true;
-		this.time.delayedCall(0, () => {
-			if (this.sys.isActive()) {
-				this.restartLevel();
-			}
+		PokiSdk.measure("button", "retry", "interact");
+		PokiSdk.commercialBreak().finally(() => {
+			this.time.delayedCall(0, () => {
+				if (this.sys.isActive()) {
+					this.restartLevel();
+				}
+			});
 		});
 	}
 
@@ -1132,6 +1140,7 @@ export default class Level extends Phaser.Scene {
 		(this as { mainShip?: MainShip }).mainShip = undefined;
 		this.remainingLives = Math.max(0, this.remainingLives - 1);
 		this.refreshLivesHud();
+		PokiSdk.measure("life", String(this.remainingLives), "lost");
 
 		if (this.remainingLives <= 0) {
 			this.triggerGameOver();
@@ -1171,6 +1180,8 @@ export default class Level extends Phaser.Scene {
 		}
 
 		this.isGameOver = true;
+		PokiSdk.gameplayStop();
+		PokiSdk.measure("level", "1", "fail");
 		this.stopTimeWarningEffect();
 		this.persistBestScore();
 		this.refreshTimeText();
@@ -1234,6 +1245,7 @@ export default class Level extends Phaser.Scene {
 			return;
 		}
 
+		PokiSdk.measure("button", "retry", "visible");
 		this.gameOverHintTween?.stop();
 		this.gameOverHintText.setAlpha(0);
 		this.gameOverHintText.setVisible(true);
@@ -1323,7 +1335,12 @@ export default class Level extends Phaser.Scene {
 
 		this.victorySelectedIndex = 0;
 		this.updateVictoryButtons();
-		this.restartLevel();
+		PokiSdk.measure("button", "retry", "interact");
+		PokiSdk.commercialBreak().finally(() => {
+			if (this.sys.isActive()) {
+				this.restartLevel();
+			}
+		});
 	}
 
 	private showVictoryMessage() {
@@ -1332,6 +1349,7 @@ export default class Level extends Phaser.Scene {
 		}
 
 		this.victoryMessageShown = true;
+		PokiSdk.measure("button", "retry", "visible");
 		const formattedScore = Math.max(0, Math.floor(this.score)).toString().padStart(9, "0");
 		this.victoryText.setText("WELL DONE");
 		this.victoryScoreLabelText.setText("score");
@@ -1465,6 +1483,8 @@ export default class Level extends Phaser.Scene {
 		}
 
 		this.timeExpired = true;
+		PokiSdk.gameplayStop();
+		PokiSdk.measure("level", "1", "complete");
 		this.remainingGameplayMs = 0;
 		this.refreshTimeText();
 		this.scoreCountTween?.stop();

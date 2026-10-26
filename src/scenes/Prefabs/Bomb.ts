@@ -8,6 +8,7 @@ import * as Phaser from "phaser";
 import AppearEffect from "./AppearEffect";
 import MainShip from "./MainShip";
 import EnemyBase from "./EnemyBase";
+import PokiSdk from "../../game/PokiSdk";
 /* END-USER-IMPORTS */
 
 export default class Bomb extends Phaser.GameObjects.Image {
@@ -35,6 +36,7 @@ export default class Bomb extends Phaser.GameObjects.Image {
 			this.setAlpha(1);
 			this.setScale(3);
 			this.playAppearSound();
+			PokiSdk.measure("bomb", "megaBomb", "visible");
 			this.scene.tweens.add({
 				targets: this,
 				scaleX: 0.7,
@@ -97,6 +99,7 @@ export default class Bomb extends Phaser.GameObjects.Image {
 		EnemyBase.destroyAllLiving();
 		this.spawnShockwave();
 		this.playActivateSound();
+		PokiSdk.measure("bomb", "megaBomb", "interact");
 		this.scene?.events.emit(Bomb.COLLECTED_EVENT, { x: this.x, y: this.y });
 		this.destroy();
 	}

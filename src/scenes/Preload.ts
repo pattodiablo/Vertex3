@@ -7,6 +7,7 @@
 import * as Phaser from "phaser";
 import assetPackUrl from "../../static/assets/asset-pack.json";
 import PerformanceManager from "../game/PerformanceManager";
+import PokiSdk from "../game/PokiSdk";
 /* END-USER-IMPORTS */
 
 export default class Preload extends Phaser.Scene {
@@ -60,6 +61,7 @@ export default class Preload extends Phaser.Scene {
 	preload() {
 
 		PerformanceManager.ensureDetected();
+		PokiSdk.init();
 		this.editorCreate();
 
 		this.load.pack("asset-pack", assetPackUrl);
@@ -74,6 +76,8 @@ export default class Preload extends Phaser.Scene {
 	}
 
 	create() {
+
+		PokiSdk.gameLoadingFinished();
 
 		if (process.env.NODE_ENV === "development") {
 
