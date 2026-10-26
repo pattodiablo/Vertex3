@@ -528,7 +528,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 			return;
 		}
 
-		if (this.scene.sys.game.device.input.touch) {
+		if (this.touchJoystick?.active) {
 			this.handleTouchMovement(delta);
 			return;
 		}
@@ -683,7 +683,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 			return gamepadAimAngle;
 		}
 
-		if (this.scene.sys.game.device.input.touch && this.touchJoystick) {
+		if (this.touchJoystick) {
 			return this.touchJoystickAngle;
 		}
 
@@ -795,7 +795,7 @@ export default class MainShip extends Phaser.GameObjects.Image {
 	}
 
 	private handlePointerDown(pointer: Phaser.Input.Pointer) {
-		if (!this.scene.sys.game.device.input.touch || (this.touchJoystick && this.touchJoystick.active)) {
+		if (!pointer.wasTouch || (this.touchJoystick && this.touchJoystick.active)) {
 			return;
 		}
 
@@ -845,8 +845,9 @@ export default class MainShip extends Phaser.GameObjects.Image {
 	}
 
 	private ensureControls() {
-		if (this.controls || this.scene.sys.game.device.input.touch) {
-			this.ensureTouchJoystick();
+		this.ensureTouchJoystick();
+
+		if (this.controls) {
 			return;
 		}
 
